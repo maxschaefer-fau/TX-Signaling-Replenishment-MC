@@ -3,6 +3,7 @@ import numpy as np
 import scipy.signal as sig
 from scipy.constants import Avogadro
 
+
 class Space:
 
     def __init__(self, particles: dict, area=None, volume=None) -> None:
@@ -43,12 +44,9 @@ class Space:
         self.particles[p_name].set_conc(k2 * np.exp(-perm_coeff * delta_t) + k1)
 
 
-
-            
-
 class Particle():
 
-    def __init__(self, count, diffusive, volume=0) -> None:
+    def __init__(self, count, diffusive, volume) -> None:
         self.count = count
         self.concentration = count / Avogadro / volume
         self.volume = volume
@@ -62,11 +60,11 @@ class Particle():
         self.concentration = new_conc
         self.count = new_conc * self.volume * Avogadro
 
+
 class Receiver():
 
     def __init__(self, radius) -> None:
         self.r_rx = radius
-
 
     def hitting_prob(self, t, r_tx, D, dist, k_d = 0.0):
         rho = 0.25 / np.pi / r_tx / r_tx
