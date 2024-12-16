@@ -1,15 +1,15 @@
 from time import time
-from Constants_Diff import *
+from config import *
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle as pk
-from Models.Reaction_new import *
+from models.reaction_new import *
 from tqdm import tqdm
 import os
 from pathlib import Path
 import scipy.signal as sig
 
-from Models.Space import Receiver
+from models.space import Receiver
 from create_state_values import create_state_array
 
 results_folder = Path(__file__).parent / 'diffusion_res'

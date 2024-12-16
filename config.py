@@ -18,6 +18,7 @@ k_d = 0.0           # Degradation rate on the space between TX and RX
 r_out = 1e-3        # The environment radius, practically infinite
 
 # Reaction Rate Constants
+kab = 1e-1          # For Ideal Transmitter
 k1 = 3.21e3         # From E and R to ER
 k_1 = 3948          # From ER to E and R
 k2 = 889            # From ER to ES
