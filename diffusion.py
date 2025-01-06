@@ -124,10 +124,10 @@ def main():
             perm_state += perm_step_change
             perm_state = min(p, perm_state)
         """
-        
+
         # Update the progress bar
         pbar.update()
-    
+
     # Calculate the average hits
     # Instantaneous increase in released molecule counts
     S_released_instant = np.concatenate(([0], S_released_count))
@@ -146,7 +146,7 @@ def main():
     avg_hits_inst *= steps_in_a_unit
     hit_probs *= steps_in_a_unit
     S_released_instant *= steps_in_a_unit
-    
+
 
     # Plot the results
     # Concentration plots
@@ -260,9 +260,6 @@ def main():
 
     # Time array
     pk.dump(time_array, open(results_folder / 'time_array.p', 'wb'))
-
-
-
 
 
 if __name__ == '__main__':

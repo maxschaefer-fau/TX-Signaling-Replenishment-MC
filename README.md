@@ -9,9 +9,9 @@
 
 # General Layout
 The code is implemented in the following parts:
-1) `Diffusion.py`: Runs the simulation and generates the results in a directory called `diffusion_res`
-2) `Constants_Diff.py`: Includes all of the settings and connstants required for the model.
-3) `Diff_combine.py`: Combines the results in the folder `Results_Combine` and saves them to `Combined_Plots`
+1) `diffusion.py`: Runs the simulation and generates the results in a directory called `diffusion_res`
+2) `config.py`: Includes all of the settings and connstants required for the model.
+3) `diff_combine.py`: Combines the results in the folder `Results_Combine` and saves them to `Combined_Plots`
 4) `create_state_values.py`: Not to be run, helper to create states when no external input is given.
 
 # Package Installation
@@ -30,16 +30,16 @@ To install a package, use the command `pip install <package>=<version>` on your 
 
 To run the code:
 
- 1) Change settings on `Constants_Diff.py` if needed.
- 2) Run `Diffusion.py`, output will be generated on `diffusion_res` directory.
+ 1) Change settings on `config.py` if needed.
+ 2) Run `diffusion.py`, output will be generated on `diffusion_res` directory.
  3) Create a directory `Results_Combine` if not created yet.
  4) Move the `diffusion_res` directory to `Results_Combine`, rename `diffusion_res` to your scenario name to be seen in the plots.
  5) Repeat this process from steps 1-4 until all required scenario results are generated.
- 6) Run `Diff_combine.py`, the comparison results will be on `Combined_Plots`.
+ 6) Run `diff_combine.py`, the comparison results will be on `Combined_Plots`.
 
 # Settings
 
-The settings can be found in the file `Constants_Diff.py`. The file includes the settings on receiver, transmitter, the environment and the molecule counts. The simulation precision can be modified from the simulation parameters. The way the membrane states are initialized can be modified, or the membrane states can be provided externally.
+The settings can be found in the file `config.py`. The file includes the settings on receiver, transmitter, the environment and the molecule counts. The simulation precision can be modified from the simulation parameters. The way the membrane states are initialized can be modified, or the membrane states can be provided externally.
 
 1) **Nanomachine Properties**: In this part, the TX and RX radii are defined.
 2) **Diffusion Settings**: In this part, the diffusion and permeability coefficients on the medium and the membrane are defined. The opening and closing of the membrane can be made noninstantaneous if the parameter `p_close` is set to a positive value.
