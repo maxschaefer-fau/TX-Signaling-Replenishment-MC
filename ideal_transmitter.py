@@ -17,52 +17,52 @@ t = np.arange(0,Ts, step_count)  # t = 0:T:500-T;
 A = 4 * np.pi * r_tx**2
 
 # Initial Concentrations 
-CinA0 = 0 
-CinB0 = 0 
-CoutB0 = 0 
+CinA0 = 0
+CinB0 = 0
+CoutB0 = 0
 
-NAout = 1e16 # Number of A molecules outside
-CoutA0 = NAout/Avogadro/vol_out # Concentration of A outside
+NAout = 1e16  # Number of A molecules outside
+CoutA0 = NAout/Avogadro/vol_out  # Concentration of A outside
 
 # permeability and reaction rates
-rho0 = p*A # connect to area of the NP surface 
+rho0 = p*A  # connect to area of the NP surface
 
 # Initialization of solution vectors
-CinA = np.zeros(len(t)) 
-CinA[0] = CinA0 
+CinA = np.zeros(len(t))
+CinA[0] = CinA0
 
-CinB = np.zeros(len(t)) 
-CinB[0] = CinB0 
+CinB = np.zeros(len(t))
+CinB[0] = CinB0
 
-CoutB = np.zeros(len(t)) 
+CoutB = np.zeros(len(t))
 CoutB[0] = CoutB0
 
-# time dependent permeability 
+# time dependent permeability
 rho = np.zeros(len(t))
 
 # Switching Permeabilty | Use Ts = 10 for base case
-step = Ts // 5 # Get the number of time blocks needed
+step = Ts // 5  # Get the number of time blocks needed
 for i in range(Ts):
     if i % 2 != 0:
         rho[int(len(t) * (i-1)/step):int(len(t) * i/step)] = rho0
 
 # Eigen value calculation
-lAin  = -(rho / vol_in + kab) 
-lBin  = -rho / vol_in 
+lAin = -(rho / vol_in + kab)
+lBin = -rho / vol_in
 lBout = rho / vol_out
 
 
 for k in range(1, len(t)):
-    CinA[k]  = np.exp(lAin[k] * step_count) * CinA[k-1] + step_count * rho[k] / vol_in * CoutA0
-    CinB[k]  = np.exp(lBin[k] * step_count) * CinB[k-1] + step_count * kab * CinA[k] 
+    CinA[k] = np.exp(lAin[k] * step_count) * CinA[k-1] + step_count * rho[k] / vol_in * CoutA0
+    CinB[k] = np.exp(lBin[k] * step_count) * CinB[k-1] + step_count * kab * CinA[k]
     CoutB[k] = CoutB[k-1] + lBout[k] * step_count * CinB[k]
 
-# convert to molecules 
+# convert to molecules
 NinA = CinA * vol_in * Avogadro
 NinB = CinB * vol_in * Avogadro
 NoutB = CoutB * vol_out * Avogadro
 
-# Received molecules 
+# Received molecules
 b1 = ((r_tx + r_rx) * (r_tx + r_rx - 2 * l) + l**2) / (4 * D_space)
 b2 = ((r_tx - r_rx) * (r_tx - r_rx + 2 * l) + l**2) / (4 * D_space)
 ro = 1 / A

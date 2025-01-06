@@ -22,7 +22,7 @@ kab = 1e-1          # For Ideal Transmitter
 k1 = 3.21e3         # From E and R to ER
 k_1 = 3948          # From ER to E and R
 k2 = 889            # From ER to ES
-#k_2 = 693          # From ES to ER
+# k_2 = 693          # From ES to ER
 k3 = 3896           # From ES to E and S
 k_3 = 4.46e3        # From E and S to ES
 k_2 = k1*k2*k3/k_1/k_3
@@ -50,8 +50,8 @@ conc_out = Space({
 
 # Simulation Parameters
 step_count = int(1e4)
-simulation_end = 30                   # seconds
-step_time = simulation_end / step_count # seconds
+simulation_end = 30                      # seconds
+step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
 # States
