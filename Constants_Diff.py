@@ -47,14 +47,14 @@ conc_out = Space({
 }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
 
 # Simulation Parameters
-step_count = int(1e7)
+step_count = int(1e5)
 simulation_end = 30                   # seconds
 step_time = simulation_end / step_count # seconds
 steps_in_a_unit = step_count / simulation_end
 
 # States
-release_count = 4
-end_part = 0.5
+release_count = 2
+end_part = 1
 state_break = end_part / (2 * release_count + 1)
 state_breaks = np.arange(state_break, end_part + state_break/2.0, state_break)
 # state_breaks = [0.05, 0.2, 0.25]

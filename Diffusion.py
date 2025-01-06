@@ -53,7 +53,7 @@ def main():
     ES_to_E_and_S = One2TwoReaction(k1=k3, k_1=k_3, substrate_conc=conc_in.particles['ES'].concentration, product_conc=[conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
 
     # Utility variables
-    time_array = np.arange(0, simulation_end, step_time)
+    time_array = np.linspace(0, simulation_end, int(simulation_end / step_time), endpoint=False)
     particle_names = ['R', 'S', 'MR', 'ER', 'ES']
     flow = np.zeros((5,))
 

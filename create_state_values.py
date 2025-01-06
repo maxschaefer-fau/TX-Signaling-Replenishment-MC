@@ -10,7 +10,7 @@ def create_state_array(file_path, perm_open, p_close_time, release_count, closed
 
     os.makedirs(file_path.parent, exist_ok=True)
     
-    state_break_perc = closed_part / (2 * release_count + 1)
+    state_break_perc = closed_part / (2 * release_count + 2)
     state_breaks = np.arange(state_break_perc, closed_part + state_break_perc/2.0, state_break_perc)
     cur_state = 0   # Keep track of the state breaks
     end_state = len(state_breaks)
