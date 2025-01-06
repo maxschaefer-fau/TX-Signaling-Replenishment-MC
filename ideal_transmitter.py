@@ -4,19 +4,21 @@ kab: Rate constant for the reaction
 """
 
 import numpy as np
+import os
 from scipy.signal import fftconvolve
 from scipy.constants import Avogadro
 import matplotlib.pyplot as plt
-from config import p, kab, r_tx, r_rx, r_out, vol_in, vol_out, l, D_space, step_count, simulation_end
+from config import p, kab, r_tx, r_rx, vol_in, vol_out, l, D_space, step_time, simulation_end
+from config import save_data
 
 
-Ts = simulation_end # Time in seconds
-t = np.arange(0,Ts, step_count)  # t = 0:T:500-T; 
+Ts = simulation_end  # Time in seconds
+t = np.arange(0, Ts, step_time)  # t = 0:T:500-T;
 
 # Calculation of Volumn and Surface Area of Tx
 A = 4 * np.pi * r_tx**2
 
-# Initial Concentrations 
+# Initial Concentrations
 CinA0 = 0
 CinB0 = 0
 CoutB0 = 0
@@ -53,9 +55,9 @@ lBout = rho / vol_out
 
 
 for k in range(1, len(t)):
-    CinA[k] = np.exp(lAin[k] * step_count) * CinA[k-1] + step_count * rho[k] / vol_in * CoutA0
-    CinB[k] = np.exp(lBin[k] * step_count) * CinB[k-1] + step_count * kab * CinA[k]
-    CoutB[k] = CoutB[k-1] + lBout[k] * step_count * CinB[k]
+    CinA[k] = np.exp(lAin[k] * step_time) * CinA[k-1] + step_time * rho[k] / vol_in * CoutA0
+    CinB[k] = np.exp(lBin[k] * step_time) * CinB[k-1] + step_time * kab * CinA[k]
+    CoutB[k] = CoutB[k-1] + lBout[k] * step_time * CinB[k]
 
 # convert to molecules
 NinA = CinA * vol_in * Avogadro
@@ -70,10 +72,23 @@ pt = (2 * ro * r_tx * r_rx / l) * np.sqrt(np.pi * D_space / t) * (np.exp(-b1 / t
 pt = np.nan_to_num(pt)
 
 nr = fftconvolve(CoutB * vol_out * Avogadro, pt, mode='full')
-Nrec = nr[:len(t)] * step_count
+Nrec = nr[:len(t)] * step_time
 
-# Save data to files
-# np.savetxt("foo.csv", NinA, delimiter=",")
+
+if save_data:
+    # Prepare data for saving
+    data = np.column_stack((t, rho, NinA, NinB, NoutB, Nrec))
+
+    # Set up directory and dynamic file naming
+    output_folder = "output/idealTx"
+    file_name = f"{Ts}s_kab_{kab:.0e}.csv" # Create file name based on Kab and Time in Seconds
+    file_path = os.path.join(output_folder, file_name)
+    os.makedirs(output_folder, exist_ok=True)  # Create folder if it doesn't exist
+
+    # Save to CSV with headers
+    header = "Time,Rho,NinA,NinB,NoutB,Nrec"
+    np.savetxt(file_path, data, delimiter=",", header=header)
+    print(f"Data saved to: {file_path}")
 
 # Plot Number of Molecues of Type A and B inside the Transmitter(Tx) and Number of Type B Molecules outside
 plt.figure(1)

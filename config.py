@@ -18,7 +18,7 @@ k_d = 0.0           # Degradation rate on the space between TX and RX
 r_out = 1e-3        # The environment radius, practically infinite
 
 # Reaction Rate Constants
-kab = 1e-1          # For Ideal Transmitter
+kab = 1          # For Ideal Transmitter
 k1 = 3.21e3         # From E and R to ER
 k_1 = 3948          # From ER to E and R
 k2 = 889            # From ER to ES
@@ -50,7 +50,7 @@ conc_out = Space({
 
 # Simulation Parameters
 step_count = int(1e4)
-simulation_end = 30                      # seconds
+simulation_end = 10                      # seconds
 step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
@@ -63,3 +63,6 @@ state_breaks = np.arange(state_break, end_part + state_break/2.0, state_break)
 
 # To be used to get external states
 state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
+
+# Save data
+save_data = True
