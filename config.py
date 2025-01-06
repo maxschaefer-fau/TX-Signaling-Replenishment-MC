@@ -49,17 +49,14 @@ conc_out = Space({
 }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
 
 # Simulation Parameters
-step_count = int(1)
-simulation_end = 1                      # seconds
+step_count = int(1e5)
+simulation_end = 30                      # seconds
 step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
 # States
-release_count = 4
-end_part = 0.5
-state_break = end_part / (2 * release_count + 1)
-state_breaks = np.arange(state_break, end_part + state_break/2.0, state_break)
-# state_breaks = [0.05, 0.2, 0.25]
+release_count = 2
+end_part = 1
 
 # To be used to get external states
 state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
