@@ -18,7 +18,7 @@ k_d = 0.0           # Degradation rate on the space between TX and RX
 r_out = 1e-3        # The environment radius, practically infinite
 
 # Reaction Rate Constants
-kab = 1          # For Ideal Transmitter
+kab = 1e-1          # For Ideal Transmitter
 k1 = 3.21e3         # From E and R to ER
 k_1 = 3948          # From ER to E and R
 k2 = 889            # From ER to ES
@@ -49,8 +49,8 @@ conc_out = Space({
 }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
 
 # Simulation Parameters
-step_count = int(1e4)
-simulation_end = 10                      # seconds
+step_count = int(1)
+simulation_end = 1                      # seconds
 step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
