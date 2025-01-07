@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import scipy.signal as sig
 
-from models.space import AbsorbingReceiver
+from models.space import AbsorbingReceiver, TransparentReceiver
 from create_state_values import create_state_array
 
 results_folder = Path(__file__).parent / 'diffusion_res'
@@ -45,7 +45,10 @@ def main():
     """
 
     # The receiver variable
-    rec = AbsorbingReceiver(r_rx)
+    if receiver_type == 'AbsorbingReceiver':
+        rec = AbsorbingReceiver(r_rx)
+    elif receiver_type == 'TransparentReceiver':
+        rec = TransparentReceiver(r_rx)
 
     # Reaction variables
     E_and_R_to_ER = Two2OneReaction(k1=k1, k_1=k_1, substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], product_conc=conc_in.particles['ER'].concentration)

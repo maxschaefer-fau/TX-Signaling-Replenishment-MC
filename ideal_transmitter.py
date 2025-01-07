@@ -9,9 +9,9 @@ from scipy.signal import fftconvolve
 from scipy.constants import Avogadro
 import matplotlib.pyplot as plt
 from config import p, kab, r_tx, r_rx, vol_in, vol_out, l, D_space, step_time, simulation_end
-from config import save_data, state_path, end_part, time_array, p_close, release_count
+from config import save_data, state_path, end_part, time_array, p_close, release_count, receiver_type
 from create_state_values import create_state_array
-from models.space import AbsorbingReceiver
+from models.space import AbsorbingReceiver, TransparentReceiver
 
 # Calculation of Volumn and Surface Area of Tx
 A = 4 * np.pi * r_tx**2
@@ -56,7 +56,11 @@ NinB = CinB * vol_in * Avogadro
 NoutB = CoutB * vol_out * Avogadro
 
 # Received molecules
-rec = AbsorbingReceiver(r_rx)
+if receiver_type=='AbsorbingReceiver':
+   rec = AbsorbingReceiver(r_rx)
+elif receiver_type=='TransparentReceiver':
+   rec = TransparentReceiver(r_rx)
+
 nr = rec.average_hits(time_array, NoutB, r_tx, D_space, l)
 Nrec = nr[:len(time_array)] * step_time
 

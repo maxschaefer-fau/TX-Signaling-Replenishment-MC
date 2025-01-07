@@ -1,4 +1,4 @@
-from models.space import Space, Particle
+from models.space import Space, Particle, AbsorbingReceiver
 import numpy as np
 import os
 from pathlib import Path
@@ -53,6 +53,7 @@ conc_out = Space({
 state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
 
 # Simulation Parameters
+receiver_type = 'AbsorbingReceiver' # Can be from ['AbsorbingReceiver', 'TransparentReceiver']
 step_count = int(1e5)
 simulation_end = 10                      # seconds
 if os.path.isfile(state_path):

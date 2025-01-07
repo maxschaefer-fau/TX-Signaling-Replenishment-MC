@@ -83,3 +83,16 @@ class AbsorbingReceiver():
 
     def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0):
         return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')
+
+class TransparentReceiver():
+
+    def __init__(self, radius) -> None:
+        self.r_rx = radius
+
+    def hitting_prob(self, t, r_tx, D, dist, k_d = 0.0):
+        prob = 0
+        return prob
+
+    def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0):
+        return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')
+
