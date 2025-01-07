@@ -1,5 +1,6 @@
 from models.space import Space, Particle
 import numpy as np
+import os
 from pathlib import Path
 
 # Nanomachine properties
@@ -18,7 +19,7 @@ k_d = 0.0           # Degradation rate on the space between TX and RX
 r_out = 1e-3        # The environment radius, practically infinite
 
 # Reaction Rate Constants
-kab = 1e-1          # For Ideal Transmitter
+kab = 1          # For Ideal Transmitter
 k1 = 3.21e3         # From E and R to ER
 k_1 = 3948          # From ER to E and R
 k2 = 889            # From ER to ES
@@ -48,18 +49,27 @@ conc_out = Space({
     'ES': Particle(0.0, False, volume=vol_out)
 }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
 
+# To be used to get external states
+state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
+
 # Simulation Parameters
 step_count = int(1e5)
-simulation_end = 10                      # seconds
+simulation_end = 30                      # seconds
+if os.path.isfile(state_path):
+    with open(state_path,"r") as f:
+        Ts = len(f.readlines())
+        step_count = Ts                       # seconds
+    f.close()
+
 step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
 # States Control Switchability
-release_count = 0  # Number of times to swtich permibiality
+release_count = 2  # Number of times to swtich permibiality
 end_part = 1  # fraction of simulation time to use for switching
 
-# To be used to get external states
-state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
+# Time Array
+time_array = np.linspace(0, simulation_end, int(simulation_end / step_time), endpoint=False)
 
 # Save data
 save_data = False
