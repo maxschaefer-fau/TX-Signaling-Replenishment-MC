@@ -32,7 +32,7 @@ vol_in = (4*np.pi*r_tx*r_tx*r_tx)/3
 conc_in = Space({
     'R': Particle(0.0, True, volume=vol_in),
     'S': Particle(0.0, True, volume=vol_in),
-    'MR': Particle(8.0, False, volume=vol_in),
+    'MR': Particle(2.0, False, volume=vol_in),
     'ER': Particle(0.0, False, volume=vol_in),
     'ES': Particle(0.0, False, volume=vol_in)
 }, area=4*np.pi*r_tx*r_tx, volume=vol_in)
@@ -50,16 +50,16 @@ conc_out = Space({
 
 # Simulation Parameters
 step_count = int(1e5)
-simulation_end = 30                      # seconds
+simulation_end = 10                      # seconds
 step_time = simulation_end / step_count  # seconds
 steps_in_a_unit = step_count / simulation_end
 
 # States Control Switchability
-release_count = 2  # Number of times to swtich permibiality
+release_count = 0  # Number of times to swtich permibiality
 end_part = 1  # fraction of simulation time to use for switching
 
 # To be used to get external states
 state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
 
 # Save data
-save_data = True
+save_data = False

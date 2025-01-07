@@ -150,45 +150,48 @@ def main():
 
     # Plot the results
     # Concentration plots
-    for key in conc_in_molars:
-        plt.figure()
-        plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-        plt.plot(time_array, conc_out_molars[key], label=key + ' conc. outside')
-        plt.xlabel('Time (s)'), plt.ylabel('Concentration (' + key + ')')
-        plt.title('Molar Concentration of (' + key + ')')
-        plt.legend()
-        plt.savefig(results_folder / (key + '_conc.png'))
+    #for key in conc_in_molars:
+    #    plt.figure()
+    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
+    #    plt.plot(time_array, conc_out_molars[key], label=key + ' conc. outside')
+    #    plt.xlabel('Time (s)'), plt.ylabel('Concentration (' + key + ')')
+    #    plt.title('Molar Concentration of (' + key + ')')
+    #    plt.legend()
+    #    plt.savefig(results_folder / (key + '_conc.png'))
 
-    pk.dump(conc_in_molars, open(results_folder / 'conc_in_molars.p', 'wb'))
-    pk.dump(conc_out_molars, open(results_folder / 'conc_out_molars.p', 'wb'))
-    # Combined Concentration Plots
-    plt.figure()
-    for key in ['R', 'S']:
-        plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-    plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
-    plt.title('Molar Concentration of R and S')
-    plt.legend()
-    plt.savefig(results_folder / ('R_S_conc.png'))
+    #pk.dump(conc_in_molars, open(results_folder / 'conc_in_molars.p', 'wb'))
+    #pk.dump(conc_out_molars, open(results_folder / 'conc_out_molars.p', 'wb'))
+    ## Combined Concentration Plots
+    #plt.figure()
 
-    plt.figure()
-    for key in ['MR', 'ER', 'ES']:
-        plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-    plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
-    plt.title('Molar Concentration of MR and Combined Forms')
-    plt.legend()
-    plt.savefig(results_folder / ('MR_ER_ES_conc.png'))
+    #for key in ['R', 'S']:
+    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
+    #plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
+    #plt.title('Molar Concentration of R and S')
+    #plt.legend()
+    #plt.savefig(results_folder / ('R_S_conc.png'))
+    #plt.figure()
+
+    #for key in ['MR', 'ER', 'ES']:
+    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
+    #plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
+    #plt.title('Molar Concentration of MR and Combined Forms')
+    #plt.legend()
+    #plt.savefig(results_folder / ('MR_ER_ES_conc.png'))
+
     # Count Plots
-    for key in conc_in_counts:
-        plt.figure()
-        plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
-        plt.plot(time_array, conc_out_counts[key], label=key + ' count outside')
-        plt.xlabel('Time (s)'), plt.ylabel('Number of (' + key + ') molecules')
-        plt.title('(' + key + ') Molecule Count')
-        plt.legend()
-        plt.savefig(results_folder / (key + '_count.png'))
+    #for key in conc_in_counts:
+    #    plt.figure()
+    #    plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
+    #    plt.plot(time_array, conc_out_counts[key], label=key + ' count outside')
+    #    plt.xlabel('Time (s)'), plt.ylabel('Number of (' + key + ') molecules')
+    #    plt.title('(' + key + ') Molecule Count')
+    #    plt.legend()
+    #    plt.savefig(results_folder / (key + '_count.png'))
 
-    pk.dump(conc_in_counts, open(results_folder / 'conc_in_counts.p', 'wb'))
-    pk.dump(conc_out_counts, open(results_folder / 'conc_out_counts.p', 'wb'))
+    #pk.dump(conc_in_counts, open(results_folder / 'conc_in_counts.p', 'wb'))
+    #pk.dump(conc_out_counts, open(results_folder / 'conc_out_counts.p', 'wb'))
+
     # Combined Count Plots
     plt.figure()
     for key in ['R', 'S']:
@@ -198,56 +201,63 @@ def main():
     plt.legend()
     plt.savefig(results_folder / ('R_S_count.png'))
 
-    plt.figure()
-    for key in ['MR', 'ER', 'ES']:
-        plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
-    plt.xlabel('Time (s)'), plt.ylabel('Number of molecules')
-    plt.title('MR and Combined Forms Molecule Count')
-    plt.legend()
-    plt.savefig(results_folder / ('MR_ER_ES_count.png'))
-    # Released count plot
-    plt.figure()
-    plt.plot(time_array, S_released_count, label='(S)-Mandelate particles')
-    #plt.yscale('symlog', linthresh=1e-15)
-    plt.xlabel('Time (s)'), plt.ylabel('Particle Count')
-    plt.title('Total # of released (S)-Mandelate molecules')
-    plt.legend()
-    plt.savefig(results_folder / 'S_released.png')
-    pk.dump(S_released_count, open(results_folder / 'S_released_count.p', 'wb'))
-    # Instantaneous Released count plot
-    plt.figure()
-    plt.plot(time_array, S_released_instant, label='(S)-Mandelate particles inst')
-    #plt.yscale('symlog', linthresh=1e-15)
-    plt.xlabel('Time (s)'), plt.ylabel('Particle Count Per Second')
-    plt.title('Instantaneous # of released (S)-Mandelate molecules')
-    plt.legend()
-    plt.savefig(results_folder / 'S_released_inst.png')
-    pk.dump(S_released_instant, open(results_folder / 'S_released_instant.p', 'wb'))
-    # Hitting Probability Plot
-    plt.figure()
-    plt.plot(time_array, hit_probs, label='Hitting Probability')
-    #plt.yscale('symlog', linthresh=1e-15)
-    plt.xlabel('Time from release (s)'), plt.ylabel('Hitting Probability Distribution')
-    plt.title('Hitting Probability from Release Time')
-    plt.legend()
-    plt.savefig(results_folder / 'hitting_probability.png')
-    pk.dump(hit_probs, open(results_folder / 'hit_probs.p', 'wb'))
+    #plt.figure()
+    #for key in ['MR', 'ER', 'ES']:
+    #    plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
+    #plt.xlabel('Time (s)'), plt.ylabel('Number of molecules')
+    #plt.title('MR and Combined Forms Molecule Count')
+    #plt.legend()
+    #plt.savefig(results_folder / ('MR_ER_ES_count.png'))
+
+    ## Released count plot
+    #plt.figure()
+    #plt.plot(time_array, S_released_count, label='(S)-Mandelate particles')
+    ##plt.yscale('symlog', linthresh=1e-15)
+    #plt.xlabel('Time (s)'), plt.ylabel('Particle Count')
+    #plt.title('Total # of released (S)-Mandelate molecules')
+    #plt.legend()
+    #plt.savefig(results_folder / 'S_released.png')
+    #pk.dump(S_released_count, open(results_folder / 'S_released_count.p', 'wb'))
+
+    ## Instantaneous Released count plot
+    #plt.figure()
+    #plt.plot(time_array, S_released_instant, label='(S)-Mandelate particles inst')
+    ##plt.yscale('symlog', linthresh=1e-15)
+    #plt.xlabel('Time (s)'), plt.ylabel('Particle Count Per Second')
+    #plt.title('Instantaneous # of released (S)-Mandelate molecules')
+    #plt.legend()
+    #plt.savefig(results_folder / 'S_released_inst.png')
+    #pk.dump(S_released_instant, open(results_folder / 'S_released_instant.p', 'wb'))
+
+    ## Hitting Probability Plot
+    #plt.figure()
+    #plt.plot(time_array, hit_probs, label='Hitting Probability')
+    ##plt.yscale('symlog', linthresh=1e-15)
+    #plt.xlabel('Time from release (s)'), plt.ylabel('Hitting Probability Distribution')
+    #plt.title('Hitting Probability from Release Time')
+    #plt.legend()
+    #plt.savefig(results_folder / 'hitting_probability.png')
+    #pk.dump(hit_probs, open(results_folder / 'hit_probs.p', 'wb'))
+
     # Average hit plot
     plt.figure()
     plt.plot(time_array, avg_hits, label='Average RX hit count')
-    plt.xlabel('Time (s)'), plt.ylabel('Expected Received Particle Count')
-    plt.title('Expected # of received (S)-Mandelate molecules')
+    plt.plot(time_array, conc_out_counts['S'], label='Conc of S out')
+    plt.xlabel('Time (s)'), plt.ylabel('Number of Molecules')
+    plt.title('Expected # of received (S)-Mandelate molecules and S out')
     plt.legend()
-    plt.savefig(results_folder / 'S_received.png')
-    pk.dump(avg_hits, open(results_folder / 'avg_hits.p', 'wb'))
-    # Instantaneous avg hit plot
-    plt.figure()
-    plt.plot(time_array, avg_hits_inst, label='Average inst. RX hit count')
-    plt.xlabel('Time (s)'), plt.ylabel('Expected Received Particle Count Per Second')
-    plt.title('Expected # of Instantaneous received (S)-Mandelate molecules from time step t=' + str(step_time) + ' s')
-    plt.legend()
-    plt.savefig(results_folder / 'S_received_inst.png')
-    pk.dump(avg_hits_inst, open(results_folder / 'avg_hits_inst.p', 'wb'))
+    plt.savefig(results_folder / 'S_received_and_out.png')
+    #pk.dump(avg_hits, open(results_folder / 'avg_hits.p', 'wb'))
+
+    ## Instantaneous avg hit plot
+    #plt.figure()
+    #plt.plot(time_array, avg_hits_inst, label='Average inst. RX hit count')
+    #plt.xlabel('Time (s)'), plt.ylabel('Expected Received Particle Count Per Second')
+    #plt.title('Expected # of Instantaneous received (S)-Mandelate molecules from time step t=' + str(step_time) + ' s')
+    #plt.legend()
+    #plt.savefig(results_folder / 'S_received_inst.png')
+    #pk.dump(avg_hits_inst, open(results_folder / 'avg_hits_inst.p', 'wb'))
+
     # Permeability plot
     plt.figure()
     plt.plot(time_array, perm_states, label='Permeability State over Time')
@@ -255,11 +265,28 @@ def main():
     plt.title('Permeability State over Time')
     plt.legend()
     plt.savefig(results_folder / 'permeability.png')
-    pk.dump(perm_states, open(results_folder / 'permeability.p', 'wb'))
+    #pk.dump(perm_states, open(results_folder / 'permeability.p', 'wb'))
 
+    if save_data:
+
+        # Prepare data for saving
+        data = np.column_stack((time_array,
+                                perm_states,
+                                conc_in_counts['R'],
+                                conc_in_counts['S'],
+                                conc_out_counts['S'],
+                                avg_hits))
+
+        file_name = f"data.csv" # Create file name based on Kab and Time in Seconds
+        file_path = os.path.join(results_folder, file_name)
+
+        # Save to CSV with headers
+        header = "Time,Rho,NinR,NinS,NoutS,Nrec"
+        np.savetxt(file_path, data, delimiter=",", header=header)
+        print(f"Data saved to: {file_path}")
 
     # Time array
-    pk.dump(time_array, open(results_folder / 'time_array.p', 'wb'))
+    #pk.dump(time_array, open(results_folder / 'time_array.p', 'wb'))
 
 if __name__ == '__main__':
     main()
