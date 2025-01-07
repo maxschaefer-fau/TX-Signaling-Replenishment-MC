@@ -61,7 +61,7 @@ class Particle():
         self.count = new_conc * self.volume * Avogadro
 
 
-class Receiver():
+class AbsorbingReceiver():
 
     def __init__(self, radius) -> None:
         self.r_rx = radius
@@ -82,4 +82,4 @@ class Receiver():
         return prob
 
     def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0):
-        return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='same')
+        return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')

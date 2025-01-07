@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from config import p, kab, r_tx, r_rx, vol_in, vol_out, l, D_space, step_time, simulation_end
 from config import save_data, state_path, end_part, time_array, p_close, release_count
 from create_state_values import create_state_array
-from models.space import Receiver
+from models.space import AbsorbingReceiver
 
 # Calculation of Volumn and Surface Area of Tx
 A = 4 * np.pi * r_tx**2
@@ -20,11 +20,10 @@ A = 4 * np.pi * r_tx**2
 CinA0 = 0
 CinB0 = 0
 CoutB0 = 0
-
 NAout = 1e16  # Number of A molecules outside
 CoutA0 = NAout/Avogadro/vol_out  # Concentration of A outside
 
-# State variables
+# Perm Array
 try:
     rho = np.genfromtxt(state_path, delimiter=',')
 except FileNotFoundError:
@@ -46,7 +45,6 @@ lAin = -(rho / vol_in + kab)
 lBin = -rho / vol_in
 lBout = rho / vol_out
 
-
 for k in range(1, len(time_array)):
     CinA[k] = np.exp(lAin[k] * step_time) * CinA[k-1] + step_time * rho[k] / vol_in * CoutA0
     CinB[k] = np.exp(lBin[k] * step_time) * CinB[k-1] + step_time * kab * CinA[k]
@@ -58,17 +56,9 @@ NinB = CinB * vol_in * Avogadro
 NoutB = CoutB * vol_out * Avogadro
 
 # Received molecules
-rec = Receiver(r_rx)
-nr = rec.average_hits(t=time_array, N=NoutB, r_tx=r_tx, D=D_space, dist=l)
-#b1 = ((r_tx + r_rx) * (r_tx + r_rx - 2 * l) + l**2) / (4 * D_space)
-#b2 = ((r_tx - r_rx) * (r_tx - r_rx + 2 * l) + l**2) / (4 * D_space)
-#ro = 1 / A
-#pt = (2 * ro * r_tx * r_rx / l) * np.sqrt(np.pi * D_space / time_array) * (np.exp(-b1 / time_array) - np.exp(-b2 / time_array))
-#pt = np.nan_to_num(pt)
-#
-#nr = fftconvolve(NoutB, pt, mode='full')
+rec = AbsorbingReceiver(r_rx)
+nr = rec.average_hits(time_array, NoutB, r_tx, D_space, l)
 Nrec = nr[:len(time_array)] * step_time
-
 
 if save_data:
     # Prepare data for saving
