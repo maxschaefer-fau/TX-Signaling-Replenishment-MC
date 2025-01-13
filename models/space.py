@@ -90,9 +90,22 @@ class TransparentReceiver():
         self.r_rx = radius
 
     def hitting_prob(self, t, r_tx, D, dist, k_d = 0.0):
-        prob = 0
+        rho = 0.25 / np.pi / r_tx / r_tx
+        beta_1 = (r_tx + self.r_rx) * (r_tx + self.r_rx - 2 * dist) + dist * dist
+        beta_1 /= 4 * D
+        beta_1 = np.divide(beta_1, t, out=np.zeros_like(t), where=t!=0)
+        beta_2 = (r_tx - self.r_rx) * (r_tx - self.r_rx + 2 * dist) + dist * dist
+        beta_2 /= 4 * D
+        beta_2 = np.divide(beta_2, t, out=np.zeros_like(t), where=t!=0)
+
+        prob = 2 * rho * r_tx * self.r_rx / dist
+        prob *= np.sqrt(np.divide(np.pi * D, t, out=np.zeros_like(t), where=t!=0))
+        prob *= (np.exp(-beta_1-k_d*t) + np.exp(-beta_2-k_d*t))
+
         return prob
 
     def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0):
+        prob = self.hitting_prob(t, r_tx, D, dist, k_d)
+        N_avg = N * prob
+        N_avg *= np.exp(-k_d*t)  # account for molecules leaving the receiver over time
         return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')
-

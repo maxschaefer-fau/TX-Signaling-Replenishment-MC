@@ -1,19 +1,7 @@
-from time import time
-from config import *
 import numpy as np
-import matplotlib.pyplot as plt
-import pickle as pk
 from models.reaction_new import *
 from tqdm import tqdm
-import os
-from pathlib import Path
-import scipy.signal as sig
-
 from models.space import AbsorbingReceiver, TransparentReceiver
-from create_state_values import create_state_array
-
-results_folder = Path(__file__).parent / 'diffusion_res'
-os.makedirs(str(results_folder), exist_ok=True)
 
 def step(reactions, molars, flows, t):
 
@@ -30,7 +18,7 @@ def step(reactions, molars, flows, t):
     reactions[1].update_conc(product_conc=reactions[2].substrate_conc)
 
 
-def main():
+def practical_transmitter(time_array, rho, conc_in, conc_out, config):
     """
     # The simulation state
     state = 0
@@ -45,25 +33,20 @@ def main():
     """
 
     # The receiver variable
-    if receiver_type == 'AbsorbingReceiver':
-        rec = AbsorbingReceiver(r_rx)
-    elif receiver_type == 'TransparentReceiver':
-        rec = TransparentReceiver(r_rx)
+    rec = AbsorbingReceiver(config.r_rx)
+    if config.receiver_type == 'AbsorbingReceiver':
+        pass
+    elif config.receiver_type == 'TransparentReceiver':
+        rec = TransparentReceiver(config.r_rx)
 
     # Reaction variables
-    E_and_R_to_ER = Two2OneReaction(k1=k1, k_1=k_1, substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], product_conc=conc_in.particles['ER'].concentration)
-    ER_to_ES = One2OneReaction(k1=k2, k_1=k_2, substrate_conc=conc_in.particles['ER'].concentration, product_conc=conc_in.particles['ES'].concentration)
-    ES_to_E_and_S = One2TwoReaction(k1=k3, k_1=k_3, substrate_conc=conc_in.particles['ES'].concentration, product_conc=[conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
+    E_and_R_to_ER = Two2OneReaction(k1=config.k1, k_1=config.k_1, substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], product_conc=conc_in.particles['ER'].concentration)
+    ER_to_ES = One2OneReaction(k1=config.k2, k_1=config.k_2, substrate_conc=conc_in.particles['ER'].concentration, product_conc=conc_in.particles['ES'].concentration)
+    ES_to_E_and_S = One2TwoReaction(k1=config.k3, k_1=config.k_3, substrate_conc=conc_in.particles['ES'].concentration, product_conc=[conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
 
     # Utility variables
     particle_names = ['R', 'S', 'MR', 'ER', 'ES']
     flow = np.zeros((5,))
-
-    # State variables
-    try:
-        perm_states = np.genfromtxt(state_path, delimiter=',')
-    except FileNotFoundError:
-        perm_states = create_state_array(state_path, 1.0, p_close, release_count, end_part, time_array)
 
     # Variables to store results
     conc_in_molars = {}
@@ -82,16 +65,17 @@ def main():
 
     # Simulation Loop
     for t_step, time in enumerate(time_array):
-        perm_state = p * perm_states[t_step]
+        perm_state = rho[t_step]
+        #perm_state = p * perm_states[t_step]
         # Diffusion Step
-        conc_in.diffuse(conc_out, perm_state, step_time)
+        conc_in.diffuse(conc_out, perm_state, config.step_time)
         # Update Reaction states
         E_and_R_to_ER.update_conc([conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], conc_in.particles['ER'].concentration)
         ER_to_ES.update_conc(conc_in.particles['ER'].concentration, conc_in.particles['ES'].concentration)
         ES_to_E_and_S.update_conc(conc_in.particles['ES'].concentration, [conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
         # Step for the Reaction
         molars = [conc_in.particles[name].concentration for name in particle_names]
-        step(reactions=[E_and_R_to_ER, ER_to_ES, ES_to_E_and_S], molars=molars, flows=flow, t=step_time)
+        step(reactions=[E_and_R_to_ER, ER_to_ES, ES_to_E_and_S], molars=molars, flows=flow, t=config.step_time)
 
         # Update Diffusion States
         conc_in.particles['MR'].set_conc(ES_to_E_and_S.product_conc[0])
@@ -136,159 +120,18 @@ def main():
     S_released_instant = S_released_instant[1:] - S_released_instant[:-1]
     # Average hit counts
     # print('Calculating average hits')
-    hit_probs = rec.hitting_prob(time_array, r_tx, D_space, l, k_d)
-    hit_probs *= step_time   # Convert from units to time steps
+    hit_probs = rec.hitting_prob(time_array, config.r_tx, config.D_space, config.dist, config.k_d)
+    hit_probs *= config.step_time   # Convert from units to time steps
     # hit_probs = np.diff(hit_probs)
-    avg_hits_inst = sig.convolve(S_released_instant, hit_probs, mode='full')
-    avg_hits_inst = avg_hits_inst[:step_count]
-    # avg_hits_inst = rec.average_hits(time_array+step_time, S_released_instant, r_tx, D, l, k_d)
+    #avg_hits_inst = sig.convolve(S_released_instant, hit_probs, mode='full')
+    #avg_hits_inst = avg_hits_inst[:step_count]
+    avg_hits_inst = rec.average_hits(time_array, S_released_instant, config.r_tx, config.D_space, config.dist, config.k_d)
+    avg_hits_inst = avg_hits_inst[:config.step_count]
     avg_hits = np.cumsum(avg_hits_inst)
     # print('Average hits calculated')
     # Convert all data in time steps to units
-    avg_hits_inst *= steps_in_a_unit
-    hit_probs *= steps_in_a_unit
-    S_released_instant *= steps_in_a_unit
-    
+    avg_hits_inst *= config.steps_in_a_unit
+    hit_probs *= config.steps_in_a_unit
+    S_released_instant *= config.steps_in_a_unit
 
-    # Plot the results
-    # Concentration plots
-    #for key in conc_in_molars:
-    #    plt.figure()
-    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-    #    plt.plot(time_array, conc_out_molars[key], label=key + ' conc. outside')
-    #    plt.xlabel('Time (s)'), plt.ylabel('Concentration (' + key + ')')
-    #    plt.title('Molar Concentration of (' + key + ')')
-    #    plt.legend()
-    #    plt.savefig(results_folder / (key + '_conc.png'))
-
-    #pk.dump(conc_in_molars, open(results_folder / 'conc_in_molars.p', 'wb'))
-    #pk.dump(conc_out_molars, open(results_folder / 'conc_out_molars.p', 'wb'))
-    ## Combined Concentration Plots
-    #plt.figure()
-
-    #for key in ['R', 'S']:
-    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-    #plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
-    #plt.title('Molar Concentration of R and S')
-    #plt.legend()
-    #plt.savefig(results_folder / ('R_S_conc.png'))
-    #plt.figure()
-
-    #for key in ['MR', 'ER', 'ES']:
-    #    plt.plot(time_array, conc_in_molars[key], label=key + ' conc. inside')
-    #plt.xlabel('Time (s)'), plt.ylabel('Concentration (Molars)')
-    #plt.title('Molar Concentration of MR and Combined Forms')
-    #plt.legend()
-    #plt.savefig(results_folder / ('MR_ER_ES_conc.png'))
-
-    # Count Plots
-    #for key in conc_in_counts:
-    #    plt.figure()
-    #    plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
-    #    plt.plot(time_array, conc_out_counts[key], label=key + ' count outside')
-    #    plt.xlabel('Time (s)'), plt.ylabel('Number of (' + key + ') molecules')
-    #    plt.title('(' + key + ') Molecule Count')
-    #    plt.legend()
-    #    plt.savefig(results_folder / (key + '_count.png'))
-
-    #pk.dump(conc_in_counts, open(results_folder / 'conc_in_counts.p', 'wb'))
-    #pk.dump(conc_out_counts, open(results_folder / 'conc_out_counts.p', 'wb'))
-
-    # Combined Count Plots
-    plt.figure()
-    for key in ['R', 'S']:
-        plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
-    plt.xlabel('Time (s)'), plt.ylabel('Number of molecules')
-    plt.title('R and S Molecule Count')
-    plt.legend()
-    plt.savefig(results_folder / ('R_S_count.png'))
-
-    #plt.figure()
-    #for key in ['MR', 'ER', 'ES']:
-    #    plt.plot(time_array, conc_in_counts[key], label=key + ' count inside')
-    #plt.xlabel('Time (s)'), plt.ylabel('Number of molecules')
-    #plt.title('MR and Combined Forms Molecule Count')
-    #plt.legend()
-    #plt.savefig(results_folder / ('MR_ER_ES_count.png'))
-
-    ## Released count plot
-    #plt.figure()
-    #plt.plot(time_array, S_released_count, label='(S)-Mandelate particles')
-    ##plt.yscale('symlog', linthresh=1e-15)
-    #plt.xlabel('Time (s)'), plt.ylabel('Particle Count')
-    #plt.title('Total # of released (S)-Mandelate molecules')
-    #plt.legend()
-    #plt.savefig(results_folder / 'S_released.png')
-    #pk.dump(S_released_count, open(results_folder / 'S_released_count.p', 'wb'))
-
-    ## Instantaneous Released count plot
-    #plt.figure()
-    #plt.plot(time_array, S_released_instant, label='(S)-Mandelate particles inst')
-    ##plt.yscale('symlog', linthresh=1e-15)
-    #plt.xlabel('Time (s)'), plt.ylabel('Particle Count Per Second')
-    #plt.title('Instantaneous # of released (S)-Mandelate molecules')
-    #plt.legend()
-    #plt.savefig(results_folder / 'S_released_inst.png')
-    #pk.dump(S_released_instant, open(results_folder / 'S_released_instant.p', 'wb'))
-
-    ## Hitting Probability Plot
-    #plt.figure()
-    #plt.plot(time_array, hit_probs, label='Hitting Probability')
-    ##plt.yscale('symlog', linthresh=1e-15)
-    #plt.xlabel('Time from release (s)'), plt.ylabel('Hitting Probability Distribution')
-    #plt.title('Hitting Probability from Release Time')
-    #plt.legend()
-    #plt.savefig(results_folder / 'hitting_probability.png')
-    #pk.dump(hit_probs, open(results_folder / 'hit_probs.p', 'wb'))
-
-    # Average hit plot
-    plt.figure()
-    plt.plot(time_array, avg_hits, label='Average RX hit count')
-    plt.plot(time_array, conc_out_counts['S'], label='Conc of S out')
-    plt.xlabel('Time (s)'), plt.ylabel('Number of Molecules')
-    plt.title('Expected # of received (S)-Mandelate molecules and S out')
-    plt.legend()
-    plt.savefig(results_folder / 'S_received_and_out.png')
-    #pk.dump(avg_hits, open(results_folder / 'avg_hits.p', 'wb'))
-
-    ## Instantaneous avg hit plot
-    #plt.figure()
-    #plt.plot(time_array, avg_hits_inst, label='Average inst. RX hit count')
-    #plt.xlabel('Time (s)'), plt.ylabel('Expected Received Particle Count Per Second')
-    #plt.title('Expected # of Instantaneous received (S)-Mandelate molecules from time step t=' + str(step_time) + ' s')
-    #plt.legend()
-    #plt.savefig(results_folder / 'S_received_inst.png')
-    #pk.dump(avg_hits_inst, open(results_folder / 'avg_hits_inst.p', 'wb'))
-
-    # Permeability plot
-    plt.figure()
-    plt.plot(time_array, perm_states, label='Permeability State over Time')
-    plt.xlabel('Time (s)'), plt.ylabel('Permeability (m/s)')
-    plt.title('Permeability State over Time')
-    plt.legend()
-    plt.savefig(results_folder / 'permeability.png')
-    #pk.dump(perm_states, open(results_folder / 'permeability.p', 'wb'))
-
-    if save_data:
-
-        # Prepare data for saving
-        data = np.column_stack((time_array,
-                                perm_states,
-                                conc_in_counts['R'],
-                                conc_in_counts['S'],
-                                conc_out_counts['S'],
-                                avg_hits))
-
-        file_name = f"data.csv" # Create file name based on Kab and Time in Seconds
-        file_path = os.path.join(results_folder, file_name)
-
-        # Save to CSV with headers
-        header = "Time,Rho,NinR,NinS,NoutS,Nrec"
-        np.savetxt(file_path, data, delimiter=",", header=header)
-        print(f"Data saved to: {file_path}")
-
-    # Time array
-    #pk.dump(time_array, open(results_folder / 'time_array.p', 'wb'))
-
-if __name__ == '__main__':
-    main()
+    return [conc_in_counts['R'], conc_in_counts['S'], conc_out_counts['S'], avg_hits] 

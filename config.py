@@ -1,76 +1,48 @@
-from models.space import Space, Particle, AbsorbingReceiver
-import numpy as np
-import os
 from pathlib import Path
 
-# Nanomachine properties
-r_tx = 80e-9        # Transmitter Radius
-r_rx = 1e-6         # Receiver Radius
 
-# Diffusion settings
-p = 7.33e-10        # Membrane Permeability coefficient
-p_close = 0         # Membrane closing time in seconds
-D = p * r_tx        # Membrane Diffusion coefficient
-D_space = 2.6e-12   # Diffusion Coefficient in the space between TX and RX
+class NanomachineConfig:
+    def __init__(self):
+        # Nanomachine properties
+        self.r_tx = 80e-9        # Transmitter Radius
+        self.r_rx = 1e-6         # Receiver Radius
 
-# Environment Properties
-l = 2e-6            # Distance between the TX and RX centers
-k_d = 0.0           # Degradation rate on the space between TX and RX
-r_out = 1e-3        # The environment radius, practically infinite
+        # Diffusion settings
+        self.p = 7.33e-10        # Membrane Permeability coefficient
+        self.p_close = 0         # Membrane closing time in seconds
+        self.D = self.p * self.r_tx  # Membrane Diffusion coefficient
+        self.D_space = 2.6e-12   # Diffusion Coefficient in the space between TX and RX
 
-# Reaction Rate Constants
-kab = 1          # For Ideal Transmitter
-k1 = 3.21e3         # From E and R to ER
-k_1 = 3948          # From ER to E and R
-k2 = 889            # From ER to ES
-# k_2 = 693          # From ES to ER
-k3 = 3896           # From ES to E and S
-k_3 = 4.46e3        # From E and S to ES
-k_2 = k1*k2*k3/k_1/k_3
+        # Environment Properties
+        self.dist = 2e-6            # Distance between the TX and RX centers
+        self.k_d =  1e2          # Degradation rate on the space between TX and RX
+        self.r_out = 1e-3        # The environment radius, practically infinite
 
-# Molecule counts on the inside
-vol_in = (4*np.pi*r_tx*r_tx*r_tx)/3
-conc_in = Space({
-    'R': Particle(0.0, True, volume=vol_in),
-    'S': Particle(0.0, True, volume=vol_in),
-    'MR': Particle(2.0, False, volume=vol_in),
-    'ER': Particle(0.0, False, volume=vol_in),
-    'ES': Particle(0.0, False, volume=vol_in)
-}, area=4*np.pi*r_tx*r_tx, volume=vol_in)
+        # Reaction Rate Constants
+        self.kab = 1e-1          # For Ideal Transmitter
+        self.k1 = 3.21e3         # From E and R to ER
+        self.k_1 = 3948          # From ER to E and R
+        self.k2 = 889            # From ER to ES
+        self.k3 = 3896           # From ES to E and S
+        self.k_3 = 4.46e3        # From E and S to ES
+        self.k_2 = self.k1 * self.k2 * self.k3 / self.k_1 / self.k_3  # Calculated
 
-# Molecule counts on the outside
-# We are considering Env a sphear including vol_in
-vol_out = (4*np.pi*r_out*r_out*r_out)/3
-conc_out = Space({
-    'R': Particle(1e16, True, volume=vol_out),
-    'S': Particle(0.0, True, volume=vol_out),
-    'MR': Particle(0.0, False, volume=vol_out),
-    'ER': Particle(0.0, False, volume=vol_out),
-    'ES': Particle(0.0, False, volume=vol_out)
-}, area=4*np.pi*r_tx*r_tx, volume=vol_out)
+        # Simulation Parameters
+        self.receiver_type = 'AbsorbingReceiver'
+        self.step_count = int(1e5)
+        self.simulation_end = 10
+        self.step_time = self.simulation_end / self.step_count
+        self.steps_in_a_unit = self.step_count / self.simulation_end
 
-# To be used to get external states
-state_path = Path(__file__).parent / 'switching_patterns' / 'perm_state_data_multiple_fig6.csv'
+        # Saving and Ploting
+        self.save = True
+        self.output_folder = Path(__file__).parent / 'diffusion_res'
+        self.plot = True
 
-# Simulation Parameters
-receiver_type = 'AbsorbingReceiver' # Can be from ['AbsorbingReceiver', 'TransparentReceiver']
-step_count = int(1e5)
-simulation_end = 10                      # seconds
-if os.path.isfile(state_path):
-    with open(state_path,"r") as f:
-        Ts = len(f.readlines())
-        step_count = Ts                       # seconds
-    f.close()
+    def display_config(self):
+        ''' Print the configuration for verification. '''
+        for key, value in self.__dict__.items():
+            print(f"{key}: {value}")
 
-step_time = simulation_end / step_count  # seconds
-steps_in_a_unit = step_count / simulation_end
 
-# States Control Switchability
-release_count = 0  # Number of times to swtich permibiality
-end_part = 1  # fraction of simulation time to use for switching
 
-# Time Array
-time_array = np.linspace(0, simulation_end, int(simulation_end / step_time), endpoint=False)
-
-# Save data
-save_data = False
