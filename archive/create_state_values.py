@@ -1,4 +1,4 @@
-from config import p, p_close, release_count, end_part, simulation_end, step_time, state_path
+from config_old import p, p_close, release_count, end_part, simulation_end, step_time, state_path
 import numpy as np
 from pathlib import Path
 import os

@@ -1,6 +1,6 @@
 import numpy as np
 from config import NanomachineConfig
-from utils import generate_switching_pattern, get_conc_vol_for_practical, save_to_csv, plot_permeability
+from utils import generate_switching_pattern, get_conc_vol_for_practical, save_to_csv, plot_data
 from ideal_transmitter import ideal_transmitter
 from practical_transmitter import practical_transmitter
 
@@ -9,7 +9,7 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0]
+switching_pattern = [1,0,1,0,1,0]
 Ts = 5
 conf.simulation_end = len(switching_pattern) * Ts
 
@@ -26,12 +26,12 @@ rho = generate_switching_pattern(switching_pattern, time_interval=Ts, length=len
 #plot_permeability(time_array, rho, switching_pattern, Ts)
 
 ## IdealTx
-results_ideal = ideal_transmitter(rho=rho,
+results_ideal = ideal_transmitter(rho_array=rho.copy(),
                                   time_array=time_array,
                                   config=conf)
 
 ## PracticalTx
-results_practical = practical_transmitter(rho=rho,
+results_practical = practical_transmitter(rho_array=rho,
                                           time_array=time_array,
                                           conc_in=conc_in,
                                           conc_out=conc_out,
@@ -41,6 +41,6 @@ if conf.save:
    save_to_csv(results_ideal, exp_type='ideal', config=conf)
    save_to_csv(results_practical, exp_type='practical', config=conf, conc_in=conc_in)
 
-#if conf.plot:
-#   pass
-#
+if conf.plot:
+  plot_data(time_array, rho, results_ideal, results_practical, switching_pattern, config=conf)
+

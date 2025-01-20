@@ -1,5 +1,5 @@
 from time import time
-from config import *
+from config_old import *
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle as pk
@@ -30,7 +30,7 @@ def step(reactions, molars, flows, t):
     reactions[1].update_conc(product_conc=reactions[2].substrate_conc)
 
 
-def main():
+def main(rho_array, time_array, conc_in, conc_out, config):
     """
     # The simulation state
     state = 0
@@ -65,6 +65,9 @@ def main():
         perm_states = np.genfromtxt(state_path, delimiter=',')
     except FileNotFoundError:
         perm_states = create_state_array(state_path, p, p_close, release_count, end_part, time_array)
+
+    print('Perm States', perm_states)
+    print('rho array from main', rho_array)
 
     # Variables to store results
     conc_in_molars = {}
@@ -292,6 +295,13 @@ def main():
 
     # Time array
     #pk.dump(time_array, open(results_folder / 'time_array.p', 'wb'))
+
+    return {
+        'NinR': conc_in_counts['R'],
+        'NinS': conc_in_counts['S'],
+        'NoutS': conc_out_counts['S'],
+        'Nrec': avg_hits
+    }
 
 if __name__ == '__main__':
     main()

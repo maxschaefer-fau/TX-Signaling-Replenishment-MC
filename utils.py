@@ -51,6 +51,100 @@ def save_to_csv(data_dict, exp_type, config, **kwargs):
     header = ','.join(data_dict.keys())
     np.savetxt(file_path, data, delimiter=",", header=header)
 
+def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, config):
+    """
+    Plot permeability and molecule counts over time.
+    
+    Parameters:
+    - time_array: Array representing time intervals.
+    - permeability_array: Array representing permeability values.
+    - NinA, NinB, NoutB, Nrec: Arrays representing molecule counts.
+    - switching_pattern: The switching pattern used in the simulation.
+    - config: Configuration object with simulation details.
+    """
+    # Set up directory and dynamic file naming
+    output_folder_with_ts = os.path.join(config.output_folder, datetime.now().strftime("%Y%m%d_%H%M"))
+    os.makedirs(output_folder_with_ts, exist_ok=True)  # Create folder if it doesn't exist
+
+    # Plot 1
+    NinA, NinB = data_ideal['NinA'], data_ideal['NinB']
+    NinR, NinS = data_practical['NinR'], data_practical['NinS']
+
+    # Top plot for molecule counts
+    fig1 = plt.figure(figsize=(10, 6))
+    ax2 = plt.subplot2grid((5, 1), (0, 0), rowspan=4)
+    ax2.plot(time_array, NinA, 'r', label='NinA')
+    ax2.plot(time_array, NinB, 'r--', label='NinB')
+    ax2.plot(time_array, NinR, 'b', label='NinR')
+    ax2.plot(time_array, NinS, 'b--', label='NinS')
+    ax2.spines['top'].set_visible(False)
+    ax2.spines['right'].set_visible(False)
+    # Set x-axis and y-axis limits to 0 to remove margin at start
+    ax2.set_ylim(0, max(NinA.max(), NinB.max(), NinR.max(), NinS.max()) + 10)  # Or set a specific max value
+    ax2.set_ylabel('# Molecules')
+    ax2.grid(True)
+    ax2.legend(loc='upper right')
+
+    # Bottom plot for permeability
+    ax1 = plt.subplot2grid((5, 1), (4, 0), rowspan=1, sharex=ax2)
+    ax1.plot(time_array, rho, 'k', label='Permeability')
+    ax1.spines['top'].set_visible(False)
+    ax1.spines['right'].set_visible(False)
+    # Set x-axis and y-axis limits to 0 to remove margin at start
+    ax1.set_xlim(0, time_array[-1] + 0.1)  # Adjust based on your data range
+    ax1.set_ylim(0, rho.max())  # Or set a specific max value
+    ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel('ρ(t)')
+    ax1.legend(loc='upper right')
+
+    plt.tight_layout()
+
+    # Save Plot 1 as an image
+    figure1_filepath = os.path.join(output_folder_with_ts, 'molecule_counts_and_permeability.png')
+    fig1.savefig(figure1_filepath)
+
+    plt.show()
+
+    # Plot 2
+    NoutB, Brec = data_ideal['NoutB'], data_ideal['Nrec']
+    NoutS, Srec = data_practical['NoutS'], data_practical['Nrec']
+
+    fig2 = plt.figure(figsize=(10, 6))
+
+    ax3 = plt.subplot2grid((5, 1), (0, 0), rowspan=4)
+    ax3.plot(time_array, NoutB, 'r', label='NoutB')
+    ax3.plot(time_array, Brec, 'r--', label='Brec')
+    ax3.plot(time_array, NoutS, 'k', label='NoutS')
+    ax3.plot(time_array, Srec, 'k--', label='Srec')
+    ax3.spines['top'].set_visible(False)
+    ax3.spines['right'].set_visible(False)
+    ax3.set_ylim(0, max(NoutB.max(), Brec.max(), NoutS.max(), Srec.max()) + 10)
+    ax3.set_xlim(0, time_array[-1] + 0.1)
+    ax3.set_xlabel('Time (s)')
+    ax3.set_ylabel('# Molecules / Reception')
+    ax3.grid(True)
+    ax3.legend(loc='upper right')
+
+    # Bottom plot for permeability
+    ax4 = plt.subplot2grid((5, 1), (4, 0), rowspan=1, sharex=ax3)
+    ax4.plot(time_array, rho, 'k', label='Permeability')
+    ax4.spines['top'].set_visible(False)
+    ax4.spines['right'].set_visible(False)
+    # Set x-axis and y-axis limits to 0 to remove margin at start
+    ax4.set_xlim(0, time_array[-1] + 0.1)  # Adjust based on your data range
+    ax4.set_ylim(0, rho.max())  # Or set a specific max value
+    ax4.set_xlabel('Time (s)')
+    ax4.set_ylabel('ρ(t)')
+    ax4.legend(loc='upper right')
+    plt.tight_layout()
+
+    # Save Plot 2 as an image
+    figure2_filepath = os.path.join(output_folder_with_ts, 'outside_molecules_and_receptions.png')
+    fig2.savefig(figure2_filepath)
+    
+    plt.show()
+
+
 
 def plot_permeability(time_array, rho, switching_pattern, Ts):
     """

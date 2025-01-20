@@ -18,7 +18,7 @@ def step(reactions, molars, flows, t):
     reactions[1].update_conc(product_conc=reactions[2].substrate_conc)
 
 
-def practical_transmitter(time_array, rho, conc_in, conc_out, config):
+def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
     """
     Simulates the behavior of a practical transmitter system over time, including
     diffusion and reaction processes involving various particles.
@@ -57,6 +57,7 @@ def practical_transmitter(time_array, rho, conc_in, conc_out, config):
     elif config.receiver_type == 'TransparentReceiver':
         rec = TransparentReceiver(config.r_rx)
 
+
     # Reaction variables
     E_and_R_to_ER = Two2OneReaction(k1=config.k1, k_1=config.k_1, substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], product_conc=conc_in.particles['ER'].concentration)
     ER_to_ES = One2OneReaction(k1=config.k2, k_1=config.k_2, substrate_conc=conc_in.particles['ER'].concentration, product_conc=conc_in.particles['ES'].concentration)
@@ -83,7 +84,7 @@ def practical_transmitter(time_array, rho, conc_in, conc_out, config):
 
     # Simulation Loop
     for t_step, time in enumerate(time_array):
-        perm_state = rho[t_step]
+        perm_state = rho_array[t_step]
         #perm_state = p * perm_states[t_step]
         # Diffusion Step
         conc_in.diffuse(conc_out, perm_state, config.step_time)
@@ -109,6 +110,7 @@ def practical_transmitter(time_array, rho, conc_in, conc_out, config):
             conc_in_counts[key][t_step] = conc_in.particles[key].count
             conc_out_counts[key][t_step] = conc_out.particles[key].count
         S_released_count[t_step] = conc_out.particles['S'].count
+
 
         """
         # Update the states

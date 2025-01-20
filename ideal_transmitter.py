@@ -8,10 +8,10 @@ from scipy.constants import Avogadro
 from models.space import AbsorbingReceiver, TransparentReceiver
 from utils import get_conc_vol_for_practical
 
-def ideal_transmitter(time_array, rho, config):
+def ideal_transmitter(time_array, rho_array, config):
     '''
     time_array: Time array of simulation
-    rho: Permibiality Vector
+    rho_array: Permibiality Vector
     config: Configuration Parameters
     return: [NinA, NinB, NoutB, Nrec] 
     '''
@@ -19,7 +19,7 @@ def ideal_transmitter(time_array, rho, config):
     # Calculation of Volumn and Surface Area of Tx
     vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(config.r_tx, config.r_out)
     A = 4 * np.pi * config.r_tx**2
-    rho *= A
+    rho_array *= A
     
     # Initial Concentrations
     CinA0 = 0
@@ -39,12 +39,12 @@ def ideal_transmitter(time_array, rho, config):
     CoutB[0] = CoutB0
     
     # Eigen value calculation
-    lAin = -(rho / vol_in + config.kab)
-    lBin = -rho / vol_in
-    lBout = rho / vol_out
+    lAin = -(rho_array / vol_in + config.kab)
+    lBin = -rho_array / vol_in
+    lBout = rho_array / vol_out
     
     for k in range(1, len(time_array)):
-        CinA[k] = np.exp(lAin[k] * config.step_time) * CinA[k-1] + config.step_time * rho[k]  / vol_in * CoutA0
+        CinA[k] = np.exp(lAin[k] * config.step_time) * CinA[k-1] + config.step_time * rho_array[k]  / vol_in * CoutA0
         CinB[k] = np.exp(lBin[k] * config.step_time) * CinB[k-1] + config.step_time * config.kab * CinA[k]
         CoutB[k] = CoutB[k-1] + lBout[k] * config.step_time * CinB[k]
     
