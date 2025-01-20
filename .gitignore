@@ -161,7 +161,7 @@ dmypy.json
 cython_debug/
 
 # Output Folder
-diffusion_res/
+output/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
