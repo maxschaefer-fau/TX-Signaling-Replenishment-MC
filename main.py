@@ -2,7 +2,7 @@ import numpy as np
 from config import NanomachineConfig
 from utils import generate_switching_pattern, get_conc_vol_for_practical, save_to_csv
 from ideal_transmitter import ideal_transmitter
-from diffusion import practical_transmitter
+from practical_transmitter import practical_transmitter
 
 # Set Config
 conf = NanomachineConfig()
@@ -14,7 +14,7 @@ Ts = 2
 print(conf.step_time)
 conf.simulation_end = len(switching_pattern) * Ts
 print(conf.step_time)
-rho = generate_switching_pattern(switching_pattern, time_interval=Ts, config)
+rho = generate_switching_pattern(switching_pattern, time_interval=Ts, config=conf)
 
 # Time Array
 time_array = np.linspace(0,
