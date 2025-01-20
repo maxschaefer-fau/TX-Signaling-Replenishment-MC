@@ -30,14 +30,30 @@ class NanomachineConfig:
         # Simulation Parameters
         self.receiver_type = 'AbsorbingReceiver'
         self.step_count = int(1e5)
-        self.simulation_end = 10
-        self.step_time = self.simulation_end / self.step_count
-        self.steps_in_a_unit = self.step_count / self.simulation_end
+        self._simulation_end = 10
+        #self.step_time = self.simulation_end / self.step_count
+        #self.steps_in_a_unit = self.step_count / self.simulation_end
 
         # Saving and Ploting
         self.save = True
-        self.output_folder = Path(__file__).parent / 'diffusion_res'
+        self.output_folder = Path(__file__).parent / 'output'
         self.plot = True
+
+    @property
+    def simulation_end(self):
+        return self._simulation_end
+
+    @simulation_end.setter
+    def simulation_end(self, value):
+        self._simulation_end = value
+
+    @property
+    def step_time(self):
+        return self.simulation_end / self.step_count  # Calculated property
+
+    @property
+    def steps_in_a_unit(self):
+        return self.step_count / self.simulation_end  # Calculated property
 
     def display_config(self):
         ''' Print the configuration for verification. '''

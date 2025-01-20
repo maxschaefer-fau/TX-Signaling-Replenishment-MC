@@ -1,6 +1,6 @@
 import numpy as np
 from config import NanomachineConfig
-from utils import generate_switching_pattern, get_conc_vol_for_practical, save_to_csv
+from utils import generate_switching_pattern, get_conc_vol_for_practical, save_to_csv, plot_permeability
 from ideal_transmitter import ideal_transmitter
 from practical_transmitter import practical_transmitter
 
@@ -9,12 +9,9 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0,1,0,1]
-Ts = 2
-print(conf.step_time)
+switching_pattern = [1,0]
+Ts = 5
 conf.simulation_end = len(switching_pattern) * Ts
-print(conf.step_time)
-rho = generate_switching_pattern(switching_pattern, time_interval=Ts, config=conf)
 
 # Time Array
 time_array = np.linspace(0,
@@ -22,22 +19,28 @@ time_array = np.linspace(0,
                          int(conf.simulation_end / conf.step_time),
                          endpoint=False)
 
-# IdealTx
+# Generate switching pattern
+rho = generate_switching_pattern(switching_pattern, time_interval=Ts, length=len(time_array), config=conf)
+
+# Plot Permeability
+#plot_permeability(time_array, rho, switching_pattern, Ts)
+
+## IdealTx
 results_ideal = ideal_transmitter(rho=rho,
                                   time_array=time_array,
                                   config=conf)
 
-# PracticalTx
-results_practicle = practical_transmitter(rho=rho,
+## PracticalTx
+results_practical = practical_transmitter(rho=rho,
                                           time_array=time_array,
                                           conc_in=conc_in,
                                           conc_out=conc_out,
                                           config=conf)
 
 if conf.save:
-   file_name = 'test_ideal1'
-   save_to_csv(results_ideal, file_name, conf)
+   save_to_csv(results_ideal, exp_type='ideal', config=conf)
+   save_to_csv(results_practical, exp_type='practical', config=conf, conc_in=conc_in)
 
-if conf.plot:
-   pass
-
+#if conf.plot:
+#   pass
+#

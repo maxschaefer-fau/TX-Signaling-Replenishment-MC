@@ -20,6 +20,24 @@ def step(reactions, molars, flows, t):
 
 def practical_transmitter(time_array, rho, conc_in, conc_out, config):
     """
+    Simulates the behavior of a practical transmitter system over time, including
+    diffusion and reaction processes involving various particles.
+
+    Parameters:
+    - time_array (numpy.ndarray): An array of time points at which the simulation is evaluated.
+    - rho (numpy.ndarray): An array representing the state of permeability at each time step.
+    - conc_in (Concentration): An object representing the concentration of molecules inside the transmitter.
+    - conc_out (Concentration): An object representing the concentration of molecules outside the transmitter.
+    - config (Config): A configuration object holding parameters like reaction rates, permeability coefficients, 
+                       step time, etc.
+
+    Returns:
+    - List: A list containing the concentration counts of:
+        1. Concentration of particle type 'R' inside the transmitter.
+        2. Concentration of particle type 'S' inside the transmitter.
+        3. Concentration of particle type 'S' outside the transmitter.
+        4. Average hits over time corresponding to the released molecules.
+
     # The simulation state
     state = 0
     end_state = len(state_breaks)
@@ -134,4 +152,11 @@ def practical_transmitter(time_array, rho, conc_in, conc_out, config):
     hit_probs *= config.steps_in_a_unit
     S_released_instant *= config.steps_in_a_unit
 
-    return [conc_in_counts['R'], conc_in_counts['S'], conc_out_counts['S'], avg_hits] 
+    # Return the results directly as a dictionary
+    return {
+        'NinR': conc_in_counts['R'],
+        'NinS': conc_in_counts['S'],
+        'NoutS': conc_out_counts['S'],
+        'Nrec': avg_hits
+    }
+

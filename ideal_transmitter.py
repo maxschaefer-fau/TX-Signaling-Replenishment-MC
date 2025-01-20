@@ -6,6 +6,7 @@ kab: Rate constant for the reaction
 import numpy as np
 from scipy.constants import Avogadro
 from models.space import AbsorbingReceiver, TransparentReceiver
+from utils import get_conc_vol_for_practical
 
 def ideal_transmitter(time_array, rho, config):
     '''
@@ -16,6 +17,7 @@ def ideal_transmitter(time_array, rho, config):
     '''
 
     # Calculation of Volumn and Surface Area of Tx
+    vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(config.r_tx, config.r_out)
     A = 4 * np.pi * config.r_tx**2
     rho *= A
     
@@ -24,7 +26,7 @@ def ideal_transmitter(time_array, rho, config):
     CinB0 = 0
     CoutB0 = 0
     NAout = 1e16  # Number of A molecules outside
-    CoutA0 = NAout/Avogadro/config.vol_out  # Concentration of A outside
+    CoutA0 = NAout/Avogadro/vol_out  # Concentration of A outside
     
     # Initialization of solution vectors
     CinA = np.zeros(len(time_array))
@@ -37,19 +39,19 @@ def ideal_transmitter(time_array, rho, config):
     CoutB[0] = CoutB0
     
     # Eigen value calculation
-    lAin = -(rho / config.vol_in + config.kab)
-    lBin = -rho / config.vol_in
-    lBout = rho / config.vol_out
+    lAin = -(rho / vol_in + config.kab)
+    lBin = -rho / vol_in
+    lBout = rho / vol_out
     
     for k in range(1, len(time_array)):
-        CinA[k] = np.exp(lAin[k] * config.step_time) * CinA[k-1] + config.step_time * rho[k]  / config.vol_in * CoutA0
+        CinA[k] = np.exp(lAin[k] * config.step_time) * CinA[k-1] + config.step_time * rho[k]  / vol_in * CoutA0
         CinB[k] = np.exp(lBin[k] * config.step_time) * CinB[k-1] + config.step_time * config.kab * CinA[k]
         CoutB[k] = CoutB[k-1] + lBout[k] * config.step_time * CinB[k]
     
     # convert to molecules
-    NinA = CinA * config.vol_in * Avogadro
-    NinB = CinB * config.vol_in * Avogadro
-    NoutB = CoutB * config.vol_out * Avogadro
+    NinA = CinA * vol_in * Avogadro
+    NinB = CinB * vol_in * Avogadro
+    NoutB = CoutB * vol_out * Avogadro
     
     # Received molecules
     rec = AbsorbingReceiver(config.r_rx)
@@ -61,4 +63,9 @@ def ideal_transmitter(time_array, rho, config):
     nr = rec.average_hits(time_array, NoutB, config.r_tx, config.D_space, config.dist)
     Nrec = nr[:len(time_array)] * config.step_time
 
-    return [NinA, NinB, NoutB, Nrec]
+    return  {
+    'NinA': NinA,
+    'NinB': NinB,
+    'NoutB': NoutB,
+    'Nrec': Nrec
+}
