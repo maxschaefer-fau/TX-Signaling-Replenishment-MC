@@ -9,9 +9,12 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0,1,0,1,0]
+switching_pattern = [1,0,1,0,1,0,0,0,0,0,0]
 Ts = 5
 conf.simulation_end = len(switching_pattern) * Ts
+
+# Config Change
+#conf.dist *= 2
 
 # Time Array
 time_array = np.linspace(0,
@@ -20,10 +23,10 @@ time_array = np.linspace(0,
                          endpoint=False)
 
 # Generate switching pattern
-rho = generate_switching_pattern(switching_pattern, time_interval=Ts, length=len(time_array), config=conf)
-
-# Plot Permeability
-#plot_permeability(time_array, rho, switching_pattern, Ts)
+rho = generate_switching_pattern(switching_pattern,
+                                 time_interval=Ts,
+                                 length=len(time_array),
+                                 config=conf)
 
 ## IdealTx
 results_ideal = ideal_transmitter(rho_array=rho.copy(),

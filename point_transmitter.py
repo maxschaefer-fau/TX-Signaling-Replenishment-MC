@@ -11,9 +11,11 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0,1,0,1,0,1]
+switching_pattern = [1,0,1,0,1,0,1,0,0,0,0]
 Ts = 2
 conf.simulation_end = len(switching_pattern) * Ts
+
+conf.dist *= 2
 
 # Time Array
 time_array = np.linspace(0,
@@ -53,6 +55,7 @@ def point_transmitter(time_array, switching_pattern, N, config):
     rec = AbsorbingReceiver(config.r_rx) if config.receiver_type == 'AbsorbingReceiver' else TransparentReceiver(config.r_rx)
     
     # Simulate average hits at the receiver
+    # TODO change hitting probability https://ieeexplore.ieee.org/document/8742793
     nr = rec.average_hits(time_array, release_pattern, config.r_tx, config.D_space, config.dist)
     Nrec = nr[:len(time_array)] * config.step_time
 
@@ -78,13 +81,14 @@ ax1.plot(time_array, NoutB, 'r', label='NoutB (Released)')
 ax1.set_xlabel('Time')
 ax1.set_ylabel('# B Molecules Released', color='r')
 ax1.tick_params(axis='y', labelcolor='r')
-ax1.set_ylim(0, max(NoutB) + 2)  # Adjust for better viewing
+ax1.set_ylim(0, max(Nrec) )  # Adjust for better viewing
 
 # Instantiate a second y-axis that shares the same x-axis
 ax2 = ax1.twinx()
 ax2.plot(time_array, Nrec, 'k', label='Nrec (Received)')
 ax2.set_ylabel('# B Molecules Received', color='k')
 ax2.tick_params(axis='y', labelcolor='k')
+ax2.set_ylim(0, max(Nrec))  # Adjust for better viewing
 
 plt.title('Number of B Molecules Released and Received Over Time')
 plt.tight_layout()  # To prevent label overlap
