@@ -15,7 +15,7 @@ class NanomachineConfig:
 
         # Environment Properties
         self.dist = 2e-6            # Distance between the TX and RX centers
-        self.k_d =  1e2          # Degradation rate on the space between TX and RX
+        self.k_d = 0         # Degradation rate on the space between TX and RX
         self.r_out = 1e-3        # The environment radius, practically infinite
 
         # Reaction Rate Constants

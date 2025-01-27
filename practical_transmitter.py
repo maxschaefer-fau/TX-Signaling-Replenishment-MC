@@ -2,6 +2,7 @@ import numpy as np
 from models.reaction_new import *
 from tqdm import tqdm
 from models.space import AbsorbingReceiver, TransparentReceiver
+from scipy import signal as sig
 
 def step(reactions, molars, flows, t):
 
@@ -130,29 +131,25 @@ def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
             perm_state += perm_step_change
             perm_state = min(p, perm_state)
         """
-        
+
         # Update the progress bar
         pbar.update()
-    
+
     # Calculate the average hits
     # Instantaneous increase in released molecule counts
     S_released_instant = np.concatenate(([0], S_released_count))
     S_released_instant = S_released_instant[1:] - S_released_instant[:-1]
+
     # Average hit counts
     # print('Calculating average hits')
-    hit_probs = rec.hitting_prob(time_array, config.r_tx, config.D_space, config.dist, config.k_d)
-    hit_probs *= config.step_time   # Convert from units to time steps
-    # hit_probs = np.diff(hit_probs)
-    #avg_hits_inst = sig.convolve(S_released_instant, hit_probs, mode='full')
-    #avg_hits_inst = avg_hits_inst[:step_count]
     avg_hits_inst = rec.average_hits(time_array, S_released_instant, config.r_tx, config.D_space, config.dist, config.k_d)
-    avg_hits_inst = avg_hits_inst[:config.step_count]
+    avg_hits_inst = avg_hits_inst[:config.step_count] * config.step_time
     avg_hits = np.cumsum(avg_hits_inst)
-    # print('Average hits calculated')
+
     # Convert all data in time steps to units
-    avg_hits_inst *= config.steps_in_a_unit
-    hit_probs *= config.steps_in_a_unit
-    S_released_instant *= config.steps_in_a_unit
+    # avg_hits_inst *= config.steps_in_a_unit
+    # hit_probs *= config.steps_in_a_unit
+    # S_released_instant *= config.steps_in_a_unit
 
     # Return the results directly as a dictionary
     return {

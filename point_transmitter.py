@@ -70,7 +70,7 @@ def point_transmitter(time_array, switching_pattern, config):
             }
 
 # Assuming time_array, Ts, and N are defined along with a Configuration object, config
-results = point_transmitter(time_array, switching_pattern, 100, conf)
+results = point_transmitter(time_array, switching_pattern, conf)
 NoutB = results['NoutB']
 Nrec = results['Nrec']
 
