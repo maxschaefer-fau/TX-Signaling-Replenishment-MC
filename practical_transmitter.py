@@ -2,7 +2,6 @@ import numpy as np
 from models.reaction_new import *
 from tqdm import tqdm
 from models.space import AbsorbingReceiver, TransparentReceiver
-from scipy import signal as sig
 
 def step(reactions, molars, flows, t):
 
@@ -145,6 +144,7 @@ def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
     avg_hits_inst = rec.average_hits(time_array, S_released_instant, config.r_tx, config.D_space, config.dist, config.k_d)
     avg_hits_inst = avg_hits_inst[:config.step_count] * config.step_time
     avg_hits = np.cumsum(avg_hits_inst)
+    #avg_hits = avg_hits_inst
 
     # Convert all data in time steps to units
     # avg_hits_inst *= config.steps_in_a_unit

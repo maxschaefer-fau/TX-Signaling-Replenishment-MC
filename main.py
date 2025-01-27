@@ -3,7 +3,7 @@ from config import NanomachineConfig
 from utils import generate_switching_pattern, get_conc_vol_for_practical, plot_pointTx, save_to_csv, plot_data
 from ideal_transmitter import ideal_transmitter
 from practical_transmitter import practical_transmitter
-#from point_transmitter import point_transmitter
+from point_transmitter import point_transmitter
 
 # Set Config
 conf = NanomachineConfig()
@@ -42,15 +42,15 @@ results_practical = practical_transmitter(rho_array=rho,
                                           config=conf)
 
 # Point Transmitter
-#results_point = point_transmitter(switching_pattern=rho.copy(),
-#                                  time_array=time_array,
-#                                  config=conf)
+results_point = point_transmitter(switching_pattern=switching_pattern.copy(),
+                                  time_array=time_array,
+                                  config=conf)
 
 if conf.save:
     save_to_csv(results_ideal, exp_type='ideal', config=conf)
     save_to_csv(results_practical, exp_type='practical', config=conf, conc_in=conc_in)
-#    save_to_csv(results_point, exp_type='point', config=conf)
+    save_to_csv(results_point, exp_type='point', config=conf)
 
 if conf.plot:
     plot_data(time_array, rho, results_ideal, results_practical, switching_pattern, config=conf)
-#    plot_pointTx(time_array, results_point, conf)
+    plot_pointTx(time_array, results_point, conf)

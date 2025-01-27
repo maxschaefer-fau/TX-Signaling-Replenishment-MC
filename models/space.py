@@ -2,6 +2,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.signal as sig
 from scipy.constants import Avogadro
+from scipy.special import erf
 
 
 class Space:
@@ -81,24 +82,32 @@ class AbsorbingReceiver():
 
         return prob
 
-    def hitting_prob_point(self, t, r_tx, D, dist, k_d = 0.0):
-        rho = 0.25 / np.pi / r_tx / r_tx
-        beta_1 = (r_tx + self.r_rx) * (r_tx + self.r_rx - 2 * dist) + dist * dist
+    def hitting_prob_point(self, t, D, dist, k_d = 0.0):
+
+        # Eq. 6 https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8742793
+        # Concentration after diffusion at distance D
+        # beta1 = 1/np.sqrt((4 * np.pi * D)**3)
+        # beta2 = (dist * dist)/(4 * D)
+        # prob = beta1 * np.exp(-beta2)
+
+        # Eq. 38 or just implemented one where we have r_tx=0?
+
+        beta_1 = (self.r_rx) * (self.r_rx - 2 * dist) + dist * dist
         beta_1 /= 4 * D
         beta_1 = np.divide(beta_1, t, out=np.zeros_like(t), where=t!=0)
-        beta_2 = (r_tx - self.r_rx) * (r_tx - self.r_rx + 2 * dist) + dist * dist
+        beta_2 = (self.r_rx) * (self.r_rx + 2 * dist) + dist * dist
         beta_2 /= 4 * D
         beta_2 = np.divide(beta_2, t, out=np.zeros_like(t), where=t!=0)
 
-        prob = 2 * rho * r_tx * self.r_rx / dist
+        prob = 2 * self.r_rx / dist
         prob *= np.sqrt(np.divide(np.pi * D, t, out=np.zeros_like(t), where=t!=0))
         prob *= (np.exp(-beta_1-k_d*t) - np.exp(-beta_2-k_d*t))
 
         return prob
 
-    def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0, type = None):
-        if type == 'point':
-            return sig.convolve(N, self.hitting_prob_point(t, r_tx, D, dist, k_d), mode='full')
+    def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0, exp = None):
+        if exp == 'point':
+            return sig.convolve(N, self.hitting_prob_point(t, D, dist, k_d), mode='full')
         return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')
 
 
@@ -108,22 +117,27 @@ class TransparentReceiver():
         self.r_rx = radius
 
     def hitting_prob(self, t, r_tx, D, dist, k_d = 0.0):
-        rho = 0.25 / np.pi / r_tx / r_tx
-        beta_1 = (r_tx + self.r_rx) * (r_tx + self.r_rx - 2 * dist) + dist * dist
-        beta_1 /= 4 * D
-        beta_1 = np.divide(beta_1, t, out=np.zeros_like(t), where=t!=0)
-        beta_2 = (r_tx - self.r_rx) * (r_tx - self.r_rx + 2 * dist) + dist * dist
-        beta_2 /= 4 * D
-        beta_2 = np.divide(beta_2, t, out=np.zeros_like(t), where=t!=0)
 
-        prob = 2 * rho * r_tx * self.r_rx / dist
-        prob *= np.sqrt(np.divide(np.pi * D, t, out=np.zeros_like(t), where=t!=0))
-        prob *= (np.exp(-beta_1-k_d*t) + np.exp(-beta_2-k_d*t))
+        # Eq. 35 for Passive Transparent Receiver 
+        # https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8742793
+
+        beta1 = (self.r_rx - dist)/np.sqrt(4 * D)
+        beta1 = np.divide(beta1, t, out=np.zeros_like(t), where=t!=0)
+
+        beta2 = (self.r_rx + dist)/np.sqrt(4 * D)
+        beta2 = np.divide(beta2, t, out=np.zeros_like(t), where=t!=0)
+
+        beta3 = np.sqrt(D * t)/(self.r_rx * np.sqrt(np.pi))
+
+        beta4 = (self.r_rx - dist)**2/(4 * D)
+        beta4 = np.divide(beta4, t, out=np.zeros_like(t), where=t!=0)
+
+        beta5 = (self.r_rx + dist)**2/(4 * D)
+        beta5 = np.divide(beta5, t, out=np.zeros_like(t), where=t!=0)
+
+        prob = 0.5 * (erf(beta1) + erf(beta2)) + beta3 * (np.exp(-beta4) + np.exp(-beta5))
 
         return prob
 
-    def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0):
-        prob = self.hitting_prob(t, r_tx, D, dist, k_d)
-        N_avg = N * prob
-        N_avg *= np.exp(-k_d*t)  # account for molecules leaving the receiver over time
+    def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0, exp=None):
         return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')

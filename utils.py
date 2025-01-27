@@ -150,7 +150,7 @@ def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, co
 
 def plot_pointTx(time_array, data_pointTx, config):
 
-    NoutB, Brec = data_pointTx['NoutB'], data_pointTx['Nrec']
+    NoutB, Nrec = data_pointTx['NoutB'], data_pointTx['Nrec']
 
     # Set up directory and dynamic file naming
     output_folder_with_ts = os.path.join(config.output_folder, datetime.now().strftime("%Y%m%d_%H%M"))
@@ -163,14 +163,14 @@ def plot_pointTx(time_array, data_pointTx, config):
     ax1.set_xlabel('Time')
     ax1.set_ylabel('# B Molecules Released', color='r')
     ax1.tick_params(axis='y', labelcolor='r')
-    ax1.set_ylim(0, max(Brec) )  # Adjust for better viewing
-
+    ax1.set_ylim(0, max(Nrec) )  # Adjust for better viewing
+    
     # Instantiate a second y-axis that shares the same x-axis
     ax2 = ax1.twinx()
-    ax2.plot(time_array, Brec, 'k', label='Brec (Received)')
+    ax2.plot(time_array, Nrec, 'k', label='Nrec (Received)')
     ax2.set_ylabel('# B Molecules Received', color='k')
     ax2.tick_params(axis='y', labelcolor='k')
-    ax2.set_ylim(0, max(Brec))  # Adjust for better viewing
+    ax2.set_ylim(0, max(Nrec) )  # Adjust for better viewing
 
     plt.title('Number of B Molecules Released and Received Over Time')
     plt.tight_layout()  # To prevent label overlap
