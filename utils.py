@@ -44,7 +44,10 @@ def save_to_csv(data_dict, exp_type, config, **kwargs):
         file_name = f'kab_{config.kab}_Ts_{config.simulation_end}'
         file_path = os.path.join(output_folder_with_ts, file_name)
     elif exp_type == 'practical':
-        file_name = f'MR_{kwargs['conc_in'].particles['MR'].count:.2f}_Ts_{config.simulation_end}'
+        file_name = f"MR_{kwargs['conc_in'].particles['MR'].count:.2f}_Ts_{config.simulation_end}"
+        file_path = os.path.join(output_folder_with_ts, file_name)
+    elif exp_type == 'point':
+        file_name = f'N_{config.N}_Ts_{config.simulation_end}'
         file_path = os.path.join(output_folder_with_ts, file_name)
 
     # Save to CSV with headers
@@ -54,7 +57,7 @@ def save_to_csv(data_dict, exp_type, config, **kwargs):
 def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, config):
     """
     Plot permeability and molecule counts over time.
-    
+
     Parameters:
     - time_array: Array representing time intervals.
     - permeability_array: Array representing permeability values.
@@ -141,8 +144,43 @@ def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, co
     # Save Plot 2 as an image
     figure2_filepath = os.path.join(output_folder_with_ts, 'outside_molecules_and_receptions.png')
     fig2.savefig(figure2_filepath)
-    
+
     plt.show()
+
+
+def plot_pointTx(time_array, data_pointTx, config):
+
+    NoutB, Brec = data_pointTx['NoutB'], data_pointTx['Nrec']
+
+    # Set up directory and dynamic file naming
+    output_folder_with_ts = os.path.join(config.output_folder, datetime.now().strftime("%Y%m%d_%H%M"))
+    os.makedirs(output_folder_with_ts, exist_ok=True)  # Create folder if it doesn't exist
+
+    fig, ax1 = plt.subplots()
+
+    # Plot number of B molecules released
+    ax1.plot(time_array, NoutB, 'r', label='NoutB (Released)')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('# B Molecules Released', color='r')
+    ax1.tick_params(axis='y', labelcolor='r')
+    ax1.set_ylim(0, max(Brec) )  # Adjust for better viewing
+
+    # Instantiate a second y-axis that shares the same x-axis
+    ax2 = ax1.twinx()
+    ax2.plot(time_array, Brec, 'k', label='Brec (Received)')
+    ax2.set_ylabel('# B Molecules Received', color='k')
+    ax2.tick_params(axis='y', labelcolor='k')
+    ax2.set_ylim(0, max(Brec))  # Adjust for better viewing
+
+    plt.title('Number of B Molecules Released and Received Over Time')
+    plt.tight_layout()  # To prevent label overlap
+
+    # Save Plot 2 as an image
+    figure_filepath = os.path.join(output_folder_with_ts, 'point_transmitter.png')
+    fig.savefig(figure_filepath)
+
+    plt.show()
+
 
 
 

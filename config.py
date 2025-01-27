@@ -34,6 +34,9 @@ class NanomachineConfig:
         #self.step_time = self.simulation_end / self.step_count
         #self.steps_in_a_unit = self.step_count / self.simulation_end
 
+        # Point Transmitter Properties
+        self.N = 100 # Number of molecules to release
+
         # Saving and Ploting
         self.save = True
         self.output_folder = Path(__file__).parent / 'output'
