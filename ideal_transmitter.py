@@ -6,7 +6,7 @@ kab: Rate constant for the reaction
 import numpy as np
 from scipy.constants import Avogadro
 from models.space import AbsorbingReceiver, TransparentReceiver
-from utils import get_conc_vol_for_practical
+from utils import get_conc_vol_for_practical, plot_hitting_prob
 
 def ideal_transmitter(time_array, rho_array, config):
     '''
@@ -60,8 +60,20 @@ def ideal_transmitter(time_array, rho_array, config):
     elif config.receiver_type == 'TransparentReceiver':
         rec = TransparentReceiver(config.r_rx)
     
+    hitting_prob = rec.hitting_prob(t=time_array,
+                                    r_tx=config.r_tx,
+                                    D=config.D_space,
+                                    dist=config.dist,
+                                    )
+    #plot_hitting_prob(time_array, hitting_prob)
+        #Nrec_inst = NoutB_instant * hitting_prob
+
+    # print(f"NoutB instant: {NoutB}")
     nr = rec.average_hits(time_array, NoutB, config.r_tx, config.D_space, config.dist)
+    # print(f"Sum of Nrec_inst with avg_hits: {np.sum(nr)}")
     Nrec = nr[:len(time_array)] * config.step_time
+    # print(f"Sum of Nrec_inst after *config.step_time: {np.sum(Nrec)}")
+
 
     return  {
     'NinA': NinA,

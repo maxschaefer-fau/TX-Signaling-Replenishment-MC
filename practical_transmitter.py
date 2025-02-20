@@ -141,6 +141,7 @@ def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
 
     # Average hit counts
     # print('Calculating average hits')
+    # print('S rel inst', S_released_instant)
     avg_hits_inst = rec.average_hits(time_array, S_released_instant, config.r_tx, config.D_space, config.dist, config.k_d)
     avg_hits_inst = avg_hits_inst[:config.step_count] * config.step_time
     avg_hits = np.cumsum(avg_hits_inst)

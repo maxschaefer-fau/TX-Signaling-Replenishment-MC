@@ -11,7 +11,13 @@ vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.
 
 # Set Switching pattern
 switching_pattern = [1,0,1,0,1,0,0,0,0,0,0]
-Ts = 5
+
+random_bits = np.random.randint(0, 2, size=12)  # Generates 10 random bits (0 or 1)
+padding = np.zeros(3, dtype=int)  # Create an array of 5 zeros
+switching_pattern = np.concatenate((random_bits, padding))
+switching_pattern = switching_pattern.tolist()
+print(switching_pattern)
+Ts = 8
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
@@ -52,5 +58,5 @@ if conf.save:
     save_to_csv(results_point, exp_type='point', config=conf)
 
 if conf.plot:
-    plot_data(time_array, rho, results_ideal, results_practical, switching_pattern, config=conf)
+    plot_data(time_array, rho, results_ideal, results_practical, results_point, switching_pattern, config=conf)
     plot_pointTx(time_array, results_point, conf)

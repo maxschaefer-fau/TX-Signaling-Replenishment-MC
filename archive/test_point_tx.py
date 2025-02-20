@@ -1,6 +1,29 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from utils import get_conc_vol_for_practical, plot_hitting_prob
 from models.space import AbsorbingReceiver, TransparentReceiver
+import numpy as np
+from config import NanomachineConfig
+from utils import generate_switching_pattern, get_conc_vol_for_practical, plot_pointTx, save_to_csv, plot_data
+
+# Set Config
+conf = NanomachineConfig()
+vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
+
+# Set Switching pattern
+switching_pattern = [1,0,0,1,0,1,0,0,0,0,0]
+
+Ts = 10
+conf.simulation_end = len(switching_pattern) * Ts
+
+# Config Change
+# conf.dist *= .5
+
+# Time Array
+time_array = np.linspace(0,
+                         conf.simulation_end,
+                         int(conf.simulation_end / conf.step_time),
+                         endpoint=False)
 
 def point_transmitter(time_array, switching_pattern, config):
     '''
@@ -43,10 +66,10 @@ def point_transmitter(time_array, switching_pattern, config):
 
     # Simulate average hits at the receiver
     # TODO change hitting probability https://ieeexplore.ieee.org/document/8742793
-    hitting_prob = rec.hitting_prob_point(t=time_array,
-                                    D=config.D_space,
-                                    dist=config.dist,
-                                    )
+    #hitting_prob = rec.hitting_prob_point(t=time_array,
+    #                                D=config.D_space,
+    #                                dist=config.dist,
+    #                                )
     # plot_hitting_prob(time_array, hitting_prob)
 
 
@@ -56,24 +79,45 @@ def point_transmitter(time_array, switching_pattern, config):
     NoutB_instant = np.concatenate(([0], NoutB))
     NoutB_instant = NoutB_instant[1:] - NoutB_instant[:-1]
     
-    # print(f"NoutB instant: {np.sum(NoutB_instant)}")
+    print(f"NoutB instant: {np.sum(NoutB_instant)}")
 
     Nrec_inst = rec.average_hits(time_array,
                          NoutB_instant,
                          config.r_tx,
                          config.D_space, # Diffusion Cofficient of Space
                          config.dist, # Distance between Tx and Rx
-                         exp='point')
+                                 exp='point')
 
-    # print(f"Sum of Nrec_inst with avg_hits: {np.sum(Nrec_inst)}")
+    print(f"Sum of Nrec_inst with avg_hits: {np.sum(Nrec_inst)}")
 
-    Nrec = Nrec_inst[:config.step_count] * config.step_time
+    Nrec = Nrec_inst[:len(time_array)]  * config.step_time
 
-    # print(f"Sum of Nrec_inst after *config.step_time: {np.sum(Nrec_inst)}")
+    print(f"Sum of Nrec_inst after *config.step_time: {np.sum(Nrec)}")
 
     Nrecv = np.cumsum(Nrec)
 
+        # Plotting the results
+    plt.figure(figsize=(10, 6))
+    plt.plot(time_array, NoutB, 'r-', label='NoutB (Released)')
+    plt.plot(time_array, NoutB_instant, 'g--', label='NoutB Instantaneous Release')
+    plt.plot(time_array, Nrec_inst[:len(time_array)], 'm:', label='Nrec Instantaneous')
+    plt.plot(time_array, Nrec, 'b-', label='Nrec (Received)')
+    plt.plot(time_array, Nrecv, 'c-', label='Cumulative Received (Nrecv)')
+
+    plt.xlabel('Time (s)')
+    plt.ylabel('Molecules')
+    plt.title('Molecular Release and Reception')
+    plt.legend(loc='upper right')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
     return {
             'NoutB': NoutB,
-            'Nrec': Nrecv
+            'Nrec': Nrec,
+            'NoutB_instant': NoutB_instant,
+            'Nrec_inst': Nrec_inst,
+            'Nrecv': Nrecv
             }
+
+results = point_transmitter(time_array, switching_pattern, conf)

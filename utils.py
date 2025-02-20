@@ -54,7 +54,7 @@ def save_to_csv(data_dict, exp_type, config, **kwargs):
     header = ','.join(data_dict.keys())
     np.savetxt(file_path, data, delimiter=",", header=header)
 
-def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, config):
+def plot_data(time_array, rho, data_ideal, data_practical, data_pointTx, switching_pattern, config):
     """
     Plot permeability and molecule counts over time.
 
@@ -111,6 +111,7 @@ def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, co
     # Plot 2
     NoutB, Brec = data_ideal['NoutB'], data_ideal['Nrec']
     NoutS, Srec = data_practical['NoutS'], data_practical['Nrec']
+    NoutB_point, Brec_point = data_pointTx['NoutB'], data_pointTx['Nrec']
 
     fig2 = plt.figure(figsize=(10, 6))
 
@@ -119,6 +120,8 @@ def plot_data(time_array, rho, data_ideal, data_practical, switching_pattern, co
     ax3.plot(time_array, Brec, 'r--', label='Brec')
     ax3.plot(time_array, NoutS, 'k', label='NoutS')
     ax3.plot(time_array, Srec, 'k--', label='Srec')
+    ax3.plot(time_array, NoutB_point, 'b', label='NoutB Point')
+    ax3.plot(time_array, Brec_point, 'b--', label='Brec Point')
     ax3.spines['top'].set_visible(False)
     ax3.spines['right'].set_visible(False)
     ax3.set_ylim(0, max(NoutB.max(), Brec.max(), NoutS.max(), Srec.max()) + 10)
@@ -163,14 +166,14 @@ def plot_pointTx(time_array, data_pointTx, config):
     ax1.set_xlabel('Time')
     ax1.set_ylabel('# B Molecules Released', color='r')
     ax1.tick_params(axis='y', labelcolor='r')
-    ax1.set_ylim(0, max(Nrec) )  # Adjust for better viewing
+    ax1.set_ylim(0, max(NoutB) )  # Adjust for better viewing
     
     # Instantiate a second y-axis that shares the same x-axis
     ax2 = ax1.twinx()
     ax2.plot(time_array, Nrec, 'k', label='Nrec (Received)')
     ax2.set_ylabel('# B Molecules Received', color='k')
     ax2.tick_params(axis='y', labelcolor='k')
-    ax2.set_ylim(0, max(Nrec) )  # Adjust for better viewing
+    ax2.set_ylim(0, max(NoutB) )  # Adjust for better viewing
 
     plt.title('Number of B Molecules Released and Received Over Time')
     plt.tight_layout()  # To prevent label overlap
@@ -182,6 +185,24 @@ def plot_pointTx(time_array, data_pointTx, config):
     plt.show()
 
 
+def plot_hitting_prob(time_array, hitting_prob):
+    """
+    Function to plot permeability over time.
+
+    Parameters:
+    - time_array: Array of time values.
+    - rho: Array of permeability values.
+    - switching_pattern: The switching pattern used in the simulation.
+    - Ts: Time interval for the switching pattern.
+    """
+    plt.figure()
+    plt.grid(True)
+    plt.plot(time_array, hitting_prob, label='Hitting Probability')
+    plt.xlabel('Time (s)')
+    plt.ylabel('# Prob')
+    plt.title(f"Hitting Prob")
+    plt.legend()
+    plt.show()
 
 
 def plot_permeability(time_array, rho, switching_pattern, Ts):
