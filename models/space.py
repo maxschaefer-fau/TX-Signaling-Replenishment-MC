@@ -98,13 +98,15 @@ class AbsorbingReceiver():
         arx -> reciever radius config.r_rx
         d0 -> dist in config
         '''
+        # dist = 6*dist
         beta1 = self.r_rx/dist
         beta2 = dist - self.r_rx
         beta3 = np.sqrt(4 * D * t)
         beta3 = np.divide(beta2, beta3, out=np.zeros_like(t), where=t!=0)
-        steepness = 50
-        prob = beta1 * erf(beta3) * np.exp(-steepness * np.linspace(0, 1, len(t)))
-        # print(prob)
+        prob = beta1 * erfc(beta3)
+        prob[0] = 0
+        print(t, prob)
+        print(f'Probability point tx absorbing rx: {prob}')
 
         return prob
 

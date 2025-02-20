@@ -11,9 +11,9 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0,0,1,0,1,0,0,0,0,0]
+switching_pattern = [1,0,1,0,0,1,1,1,0,0,0]
 
-Ts = 10
+Ts = 300
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
@@ -62,7 +62,7 @@ def point_transmitter(time_array, switching_pattern, config):
 
     # Create receiver and perform convolution to simulate reception of released molecules
     rec = AbsorbingReceiver(config.r_rx) if config.receiver_type == 'AbsorbingReceiver' else TransparentReceiver(config.r_rx)
-    #rec = TransparentReceiver(config.r_rx)
+    # rec = TransparentReceiver(config.r_rx)
 
     # Simulate average hits at the receiver
     # TODO change hitting probability https://ieeexplore.ieee.org/document/8742793
@@ -90,11 +90,11 @@ def point_transmitter(time_array, switching_pattern, config):
 
     print(f"Sum of Nrec_inst with avg_hits: {np.sum(Nrec_inst)}")
 
-    Nrec = Nrec_inst[:len(time_array)]  * config.step_time
+    Nrec = Nrec_inst[:len(time_array)]  # * config.step_time
 
     print(f"Sum of Nrec_inst after *config.step_time: {np.sum(Nrec)}")
 
-    Nrecv = np.cumsum(Nrec)
+    # Nrecv = np.cumsum(Nrec)
 
         # Plotting the results
     plt.figure(figsize=(10, 6))
@@ -102,7 +102,7 @@ def point_transmitter(time_array, switching_pattern, config):
     plt.plot(time_array, NoutB_instant, 'g--', label='NoutB Instantaneous Release')
     plt.plot(time_array, Nrec_inst[:len(time_array)], 'm:', label='Nrec Instantaneous')
     plt.plot(time_array, Nrec, 'b-', label='Nrec (Received)')
-    plt.plot(time_array, Nrecv, 'c-', label='Cumulative Received (Nrecv)')
+    # plt.plot(time_array, Nrecv, 'c-', label='Cumulative Received (Nrecv)')
 
     plt.xlabel('Time (s)')
     plt.ylabel('Molecules')
@@ -117,7 +117,7 @@ def point_transmitter(time_array, switching_pattern, config):
             'Nrec': Nrec,
             'NoutB_instant': NoutB_instant,
             'Nrec_inst': Nrec_inst,
-            'Nrecv': Nrecv
+            #'Nrecv': Nrecv
             }
 
 results = point_transmitter(time_array, switching_pattern, conf)

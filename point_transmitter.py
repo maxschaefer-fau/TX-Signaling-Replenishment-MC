@@ -67,7 +67,7 @@ def point_transmitter(time_array, switching_pattern, config):
 
     # print(f"Sum of Nrec_inst with avg_hits: {np.sum(Nrec_inst)}")
 
-    Nrec = Nrec_inst[:config.step_count] * config.step_time
+    Nrec = Nrec_inst[:config.step_count] # * config.step_time
 
     # print(f"Sum of Nrec_inst after *config.step_time: {np.sum(Nrec_inst)}")
 
@@ -75,5 +75,5 @@ def point_transmitter(time_array, switching_pattern, config):
 
     return {
             'NoutB': NoutB,
-            'Nrec': Nrecv
+            'Nrec': Nrec
             }

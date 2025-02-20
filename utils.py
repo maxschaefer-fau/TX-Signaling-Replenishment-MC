@@ -24,7 +24,12 @@ def generate_switching_pattern(switching_pattern, time_interval, length, config)
 
     return rho_array
 
-def generate_dyn_switching_pattern(switching_pattern, time_interval, length, config, peak_duration_ratio=0.2):
+def generate_dyn_switching_pattern(switching_pattern,
+                                   time_interval,
+                                   length,
+                                   config,
+                                   peak_duration_ratio=0.2,
+                                   zero_duration_ratio=0.2):
     '''
     Generate a permeability pattern that rises to a max, stays, then falls.
 
@@ -46,8 +51,9 @@ def generate_dyn_switching_pattern(switching_pattern, time_interval, length, con
 
     # Determine how long to go up, stay at peak, and go down based on peak_duration_ratio
     peak_duration = int(segment_length * peak_duration_ratio)
-    rise_duration = (segment_length - peak_duration) // 2
-    fall_duration = segment_length - rise_duration - peak_duration
+    zero_duration = int(segment_length * zero_duration_ratio)
+    rise_duration = (segment_length - peak_duration - zero_duration) // 2
+    fall_duration = segment_length - rise_duration - peak_duration - zero_duration
 
     for i, state in enumerate(switching_pattern):
         start_index = i * segment_length

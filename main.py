@@ -11,7 +11,7 @@ conf = NanomachineConfig()
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
 # Set Switching pattern
-switching_pattern = [1,0,1,0,1,0,0,0,0,0,0]
+switching_pattern = [1,1,0]
 
 random_bits = np.random.randint(0, 2, size=5)  # Generates 10 random bits (0 or 1)
 padding = np.zeros(3, dtype=int)  # Create an array of 5 zeros
@@ -20,7 +20,7 @@ switching_pattern = switching_pattern.tolist()
 
 print(switching_pattern)
 
-Ts = 50
+Ts = 80
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
@@ -36,7 +36,9 @@ time_array = np.linspace(0,
 rho = generate_dyn_switching_pattern(switching_pattern,
                                  time_interval=Ts,
                                  length=len(time_array),
-                                 config=conf)
+                                 config=conf,
+                                 peak_duration_ratio=0.1,
+                                 zero_duration_ratio=0.1)
 
 # IdealTx
 results_ideal = ideal_transmitter(rho_array=rho.copy(),
