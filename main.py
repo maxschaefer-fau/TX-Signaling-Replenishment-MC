@@ -1,6 +1,7 @@
 import numpy as np
 from config import NanomachineConfig
 from utils import generate_switching_pattern, get_conc_vol_for_practical, plot_pointTx, save_to_csv, plot_data
+from utils import generate_dyn_switching_pattern
 from ideal_transmitter import ideal_transmitter
 from practical_transmitter import practical_transmitter
 from point_transmitter import point_transmitter
@@ -12,12 +13,14 @@ vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.
 # Set Switching pattern
 switching_pattern = [1,0,1,0,1,0,0,0,0,0,0]
 
-random_bits = np.random.randint(0, 2, size=10)  # Generates 10 random bits (0 or 1)
-padding = np.zeros(5, dtype=int)  # Create an array of 5 zeros
+random_bits = np.random.randint(0, 2, size=5)  # Generates 10 random bits (0 or 1)
+padding = np.zeros(3, dtype=int)  # Create an array of 5 zeros
 switching_pattern = np.concatenate((random_bits, padding))
 switching_pattern = switching_pattern.tolist()
+
 print(switching_pattern)
-Ts = 8
+
+Ts = 50
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
@@ -30,7 +33,7 @@ time_array = np.linspace(0,
                          endpoint=False)
 
 # Generate switching pattern
-rho = generate_switching_pattern(switching_pattern,
+rho = generate_dyn_switching_pattern(switching_pattern,
                                  time_interval=Ts,
                                  length=len(time_array),
                                  config=conf)

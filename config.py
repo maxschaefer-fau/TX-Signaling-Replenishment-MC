@@ -35,7 +35,7 @@ class NanomachineConfig:
         #self.steps_in_a_unit = self.step_count / self.simulation_end
 
         # Point Transmitter Properties
-        self.N = 200 # Number of molecules to release
+        self.N = 100 # Number of molecules to release
 
         # Saving and Ploting
         self.save = True

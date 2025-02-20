@@ -8,9 +8,9 @@ from models.space import Space, Particle
 
 def generate_switching_pattern(switching_pattern, time_interval, length, config):
     '''
-    Example: switching_pattern -> [1,0,0,1,1], time_interval -> 2s
+    Example: switching_pattern -> [1,0,0,1,0], time_interval -> 3s
 
-    each switching pattern for 2s
+    each switching pattern for 3s
     '''
     rho_array = np.zeros(length)
     segment_length = length // len(switching_pattern) 
@@ -21,6 +21,50 @@ def generate_switching_pattern(switching_pattern, time_interval, length, config)
         
         # Assign the state value to the corresponding segment in rho_array
         rho_array[start_index:end_index] = state * config.p
+
+    return rho_array
+
+def generate_dyn_switching_pattern(switching_pattern, time_interval, length, config, peak_duration_ratio=0.2):
+    '''
+    Generate a permeability pattern that rises to a max, stays, then falls.
+
+    - switching_pattern: list of binary values [1,0,0,1,0]
+    - time_interval: Duration of each switching pattern (e.g., 3 seconds)
+    - length: Total length of the resulting rho_array
+    - config: Configuration object with maximum permeability 'p'
+    - peak_duration_ratio: Fraction of time_interval to stay at max before decreasing
+
+    Example Usage:
+        - switching_pattern = [1, 0, 0, 1, 0]
+    - time_interval = 3
+    - length = 15 (must be divisible by len(switching_pattern))
+    - config.p = max permeability value
+    '''
+
+    rho_array = np.zeros(length)
+    segment_length = length // len(switching_pattern) 
+
+    # Determine how long to go up, stay at peak, and go down based on peak_duration_ratio
+    peak_duration = int(segment_length * peak_duration_ratio)
+    rise_duration = (segment_length - peak_duration) // 2
+    fall_duration = segment_length - rise_duration - peak_duration
+
+    for i, state in enumerate(switching_pattern):
+        start_index = i * segment_length
+        end_index = start_index + segment_length
+
+        if state == 1:
+            # Rising segment
+            for j in range(rise_duration):
+                rho_array[start_index + j] = (j / rise_duration) * config.p
+
+            # Peak segment
+            for j in range(peak_duration):
+                rho_array[start_index + rise_duration + j] = config.p
+
+            # Falling segment
+            for j in range(fall_duration):
+                rho_array[start_index + rise_duration + peak_duration + j] = config.p * (1 - j / fall_duration)
 
     return rho_array
 
