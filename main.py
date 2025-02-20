@@ -12,8 +12,8 @@ vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.
 # Set Switching pattern
 switching_pattern = [1,0,1,0,1,0,0,0,0,0,0]
 
-random_bits = np.random.randint(0, 2, size=12)  # Generates 10 random bits (0 or 1)
-padding = np.zeros(3, dtype=int)  # Create an array of 5 zeros
+random_bits = np.random.randint(0, 2, size=10)  # Generates 10 random bits (0 or 1)
+padding = np.zeros(5, dtype=int)  # Create an array of 5 zeros
 switching_pattern = np.concatenate((random_bits, padding))
 switching_pattern = switching_pattern.tolist()
 print(switching_pattern)

@@ -102,7 +102,7 @@ class AbsorbingReceiver():
         beta2 = dist - self.r_rx
         beta3 = np.sqrt(4 * D * t)
         beta3 = np.divide(beta2, beta3, out=np.zeros_like(t), where=t!=0)
-        steepness = 20
+        steepness = 15
         prob = beta1 * erf(beta3) * np.exp(-steepness * np.linspace(0, 1, len(t)))
         # print(prob)
 
