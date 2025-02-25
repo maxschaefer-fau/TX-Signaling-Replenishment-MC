@@ -7,8 +7,8 @@ class NanomachineConfig:
     """
 
     # Constants defining settings and properties
-    DEFAULT_NUM_MOLECULES = 300  # Default number of molecules to release
-    
+    DEFAULT_NUM_MOLECULES = 100  # Default number of molecules to release
+
     def __init__(self):
         # Nanomachine properties
         self.r_tx: float = 80e-9          # Transmitter Radius in meters

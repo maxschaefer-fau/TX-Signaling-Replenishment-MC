@@ -18,10 +18,10 @@ conf = NanomachineConfig()
 # Setup volumes and concentrations
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
-switching_pattern = generate_random_switching_pattern(length=5, padding=3)
+switching_pattern = generate_random_switching_pattern(length=10, padding=5)
 print(switching_pattern)
 
-Ts = 10 # Time duration for each switch in switching_pattern
+Ts = 5 # Time duration for each switch in switching_pattern
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
@@ -56,7 +56,9 @@ results_practical = practical_transmitter(rho_array=rho,
 # Call PointTx
 results_point = point_transmitter(switching_pattern=switching_pattern.copy(),
                                   time_array=time_array,
-                                  config=conf)
+                                  config=conf,
+                                  NoutS_practical=results_practical['NoutS'])
+
 
 # Save experiment data to csv or txt
 if conf.save:
@@ -67,4 +69,4 @@ if conf.save:
 # plot and save the plots
 if conf.plot:
     plot_data(time_array, rho, results_ideal, results_practical, results_point, switching_pattern, config=conf)
-    # plot_pointTx(time_array, results_point, conf)
+    plot_pointTx(time_array, results_point, conf)

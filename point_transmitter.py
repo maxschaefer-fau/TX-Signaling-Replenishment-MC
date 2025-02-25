@@ -1,7 +1,7 @@
 import numpy as np
 from models.space import AbsorbingReceiver, TransparentReceiver
 
-def point_transmitter(time_array: np.ndarray, switching_pattern: list[int], config) -> dict:
+def point_transmitter(time_array: np.ndarray, switching_pattern: list[int], config, NoutS_practical: list[int]) -> dict:
     """
     Simulate the release of N molecules of type B at specified intervals defined by the switching pattern.
 
@@ -30,15 +30,14 @@ def point_transmitter(time_array: np.ndarray, switching_pattern: list[int], conf
     segment_length = len(time_array) // len(switching_pattern)
 
     # Collect indices where molecules will be released based on the switching pattern
-    release_indices = []
     for i, state in enumerate(switching_pattern):
         start_index = i * segment_length
         if state == 1:  # If the state is '1', molecules should be released
-            release_indices.append(start_index)
-            NoutB[start_index:] += config.N  # Add number of molecules from this point onwards
+            # NoutB[start_index:] += config.N  # Add number of molecules from this point onwards
+            NoutB[start_index:] += NoutS_practical[start_index]  # Add number of molecules from this point onwards
 
-    # Assign the number of molecules to the release pattern
-    release_pattern[release_indices] = config.N
+            # Assign the number of molecules to the release pattern
+            release_pattern[start_index] = NoutS_practical[start_index]
 
     # Create the appropriate receiver instance based on the configuration
     rec = AbsorbingReceiver(config.r_rx) if config.receiver_type == 'AbsorbingReceiver' else TransparentReceiver(config.r_rx)
