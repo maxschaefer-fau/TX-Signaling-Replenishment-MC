@@ -69,4 +69,4 @@ if conf.save:
 # plot and save the plots
 if conf.plot:
     plot_data(time_array, rho, results_ideal, results_practical, results_point, switching_pattern, config=conf)
-    plot_pointTx(time_array, results_point, conf)
+    # plot_pointTx(time_array, results_point, conf)
