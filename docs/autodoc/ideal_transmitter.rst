@@ -1,4 +1,4 @@
-ideal\_transmitter module
+Ideal Transmitter Module
 =========================
 
 .. automodule:: ideal_transmitter

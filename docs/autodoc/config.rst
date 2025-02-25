@@ -1,4 +1,4 @@
-config module
+Config Module
 =============
 
 .. automodule:: config

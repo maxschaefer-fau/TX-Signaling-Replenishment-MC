@@ -1,4 +1,4 @@
-practical\_transmitter module
+Practical Transmitter Module
 =============================
 
 .. automodule:: practical_transmitter

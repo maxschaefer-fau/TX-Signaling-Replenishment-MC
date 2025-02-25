@@ -1,4 +1,4 @@
-point\_transmitter module
+Point Transmitter Module
 =========================
 
 .. automodule:: point_transmitter
