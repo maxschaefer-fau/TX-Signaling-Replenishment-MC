@@ -150,8 +150,10 @@ def plot_data(time_array, rho, data_ideal, data_practical, data_pointTx, switchi
 
     Parameters:
         time_array: Array representing time intervals.
-        permeability_array: Array representing permeability values.
-        NinA, NinB, NoutB, Nrec: Arrays representing molecule counts.
+        permeability_array(rho): Array representing permeability values.
+        data_ideal: dict containing ideal experiment output
+        data_practical: dict containing practical experiment output
+        data_pointTx: dict containing point transmitter experiment output
         switching_pattern: The switching pattern used in the simulation.
         config: Configuration object with simulation details.
     """
