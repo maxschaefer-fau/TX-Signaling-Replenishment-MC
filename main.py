@@ -1,6 +1,6 @@
 import numpy as np
-from config import NanomachineConfig
-from utils import (
+from utils.config import NanomachineConfig
+from utils.utils import (
     generate_random_switching_pattern,
     generate_permeability_pattern,
     get_conc_vol_for_practical,
@@ -8,9 +8,9 @@ from utils import (
     plot_pointTx,
     save_to_csv
 )
-from ideal_transmitter import ideal_transmitter
-from practical_transmitter import practical_transmitter
-from point_transmitter import point_transmitter
+from transmitters.ideal_transmitter import ideal_transmitter
+from transmitters.practical_transmitter import practical_transmitter
+from transmitters.point_transmitter import point_transmitter
 
 # Initialize configuration
 conf = NanomachineConfig()

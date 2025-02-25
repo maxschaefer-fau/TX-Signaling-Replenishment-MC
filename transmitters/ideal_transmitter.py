@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.constants import Avogadro
 from models.space import AbsorbingReceiver, TransparentReceiver
-from utils import get_conc_vol_for_practical
+from utils.utils import get_conc_vol_for_practical
 
 def ideal_transmitter(time_array: np.ndarray, rho_array: np.ndarray, config) -> dict:
     """
