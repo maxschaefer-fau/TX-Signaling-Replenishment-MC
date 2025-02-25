@@ -18,51 +18,53 @@ conf = NanomachineConfig()
 # Setup volumes and concentrations
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
-switching_pattern = generate_random_switching_pattern(length=10, padding=3)
+switching_pattern = generate_random_switching_pattern(length=5, padding=3)
 print(switching_pattern)
 
-Ts = 80
+Ts = 10 # Time duration for each switch in switching_pattern
 conf.simulation_end = len(switching_pattern) * Ts
 
 # Config Change
 # conf.dist *= 2
 
-# Time Array
+# Generating a Time Array
 time_array = np.linspace(0,
                          conf.simulation_end,
                          int(conf.simulation_end / conf.step_time),
                          endpoint=False)
 
-# Generate switching pattern
-rho = generate_permeability_pattern(mode='practical',
+# Generate permeability pattern according to switching pattern
+rho = generate_permeability_pattern(mode='ideal',
                                  switching_pattern=switching_pattern,
                                  length=len(time_array),
                                  config=conf,
                                  peak_duration_ratio=0.05,
                                  zero_duration_ratio=0.05)
 
-# IdealTx
+# Call IdealTx
 results_ideal = ideal_transmitter(rho_array=rho.copy(),
                                   time_array=time_array,
                                   config=conf)
 
-# PracticalTx
+# Call PracticalTx
 results_practical = practical_transmitter(rho_array=rho,
                                           time_array=time_array,
                                           conc_in=conc_in,
                                           conc_out=conc_out,
                                           config=conf)
 
-# Point Transmitter
+# Call PointTx
 results_point = point_transmitter(switching_pattern=switching_pattern.copy(),
                                   time_array=time_array,
                                   config=conf)
 
+# Save experiment data to csv or txt
 if conf.save:
     save_to_csv(results_ideal, exp_type='ideal', config=conf)
     save_to_csv(results_practical, exp_type='practical', config=conf, conc_in=conc_in)
     save_to_csv(results_point, exp_type='point', config=conf)
 
+# plot and save the plots
 if conf.plot:
     plot_data(time_array, rho, results_ideal, results_practical, results_point, switching_pattern, config=conf)
-    plot_pointTx(time_array, results_point, conf)
+    # plot_pointTx(time_array, results_point, conf)
