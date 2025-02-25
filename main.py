@@ -1,23 +1,24 @@
 import numpy as np
 from config import NanomachineConfig
-from utils import generate_switching_pattern, get_conc_vol_for_practical, plot_pointTx, save_to_csv, plot_data
-from utils import generate_dyn_switching_pattern
+from utils import (
+    generate_random_switching_pattern,
+    generate_permeability_pattern,
+    get_conc_vol_for_practical,
+    plot_data,
+    plot_pointTx,
+    save_to_csv
+)
 from ideal_transmitter import ideal_transmitter
 from practical_transmitter import practical_transmitter
 from point_transmitter import point_transmitter
 
-# Set Config
+# Initialize configuration
 conf = NanomachineConfig()
+
+# Setup volumes and concentrations
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
-# Set Switching pattern
-switching_pattern = [1,1,0]
-
-random_bits = np.random.randint(0, 2, size=5)  # Generates 10 random bits (0 or 1)
-padding = np.zeros(3, dtype=int)  # Create an array of 5 zeros
-switching_pattern = np.concatenate((random_bits, padding))
-switching_pattern = switching_pattern.tolist()
-
+switching_pattern = generate_random_switching_pattern(length=10, padding=3)
 print(switching_pattern)
 
 Ts = 80
@@ -33,12 +34,12 @@ time_array = np.linspace(0,
                          endpoint=False)
 
 # Generate switching pattern
-rho = generate_dyn_switching_pattern(switching_pattern,
-                                 time_interval=Ts,
+rho = generate_permeability_pattern(mode='practical',
+                                 switching_pattern=switching_pattern,
                                  length=len(time_array),
                                  config=conf,
-                                 peak_duration_ratio=0.1,
-                                 zero_duration_ratio=0.1)
+                                 peak_duration_ratio=0.05,
+                                 zero_duration_ratio=0.05)
 
 # IdealTx
 results_ideal = ideal_transmitter(rho_array=rho.copy(),

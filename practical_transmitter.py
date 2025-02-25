@@ -4,113 +4,112 @@ from tqdm import tqdm
 from models.space import AbsorbingReceiver, TransparentReceiver
 
 def step(reactions, molars, flows, t):
+    """
+    Advances the chemical reactions by one time step.
 
-    reactions[0].step(t)
-    reactions[1].update_conc(substrate_conc=reactions[0].product_conc)
+    This function performs the calculations necessary to update the state of the
+    reactions based on the given time step. It updates the concentrations of substrates
+    and products for the specified reactions.
+
+    Parameters:
+        reactions (list): A list of reaction objects that define the chemical steps.
+        molars (list): A list of current molar concentrations of chemical species.
+        flows (np.ndarray): An array representing the flow rates of the substances.
+        t (float): The current time step for which the reactants are being updated.
+    """
+
+    # Step through the reactions in sequence and update concentration
+    reactions[0].step(t)  # First reaction (E + R -> ER)
+    reactions[1].update_conc(substrate_conc=reactions[0].product_conc)  # Update second reaction based on the product of the first
     reactions[2].update_conc(product_conc=[reactions[0].substrate_conc[0], reactions[2].product_conc[1]])
 
-    reactions[1].step(t)
-    reactions[2].update_conc(substrate_conc=reactions[1].product_conc)
-    reactions[0].update_conc(product_conc=reactions[1].substrate_conc)
+    reactions[1].step(t)  # Second reaction (ER -> ES)
+    reactions[2].update_conc(substrate_conc=reactions[1].product_conc)  # Update third reaction based on the product of the second
+    reactions[0].update_conc(product_conc=reactions[1].substrate_conc)  # Update first reaction's concentrations
 
-    reactions[2].step(t)
+    reactions[2].step(t)  # Third reaction (ES -> E + S)
     reactions[0].update_conc(substrate_conc=[reactions[2].product_conc[0], reactions[0].substrate_conc[1]])
     reactions[1].update_conc(product_conc=reactions[2].substrate_conc)
 
-
-def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
+def practical_transmitter(time_array: np.ndarray, rho_array: np.ndarray, conc_in, conc_out, config) -> dict:
     """
     Simulates the behavior of a practical transmitter system over time, including
     diffusion and reaction processes involving various particles.
 
     Parameters:
-    - time_array (numpy.ndarray): An array of time points at which the simulation is evaluated.
-    - rho (numpy.ndarray): An array representing the state of permeability at each time step.
-    - conc_in (Concentration): An object representing the concentration of molecules inside the transmitter.
-    - conc_out (Concentration): An object representing the concentration of molecules outside the transmitter.
-    - config (Config): A configuration object holding parameters like reaction rates, permeability coefficients, 
-                       step time, etc.
+        time_array (np.ndarray): An array of time points at which the simulation is evaluated.
+        rho_array (np.ndarray): An array representing the state of permeability at each time step.
+        conc_in (Concentration): An object representing the concentration of molecules inside the transmitter.
+        conc_out (Concentration): An object representing the concentration of molecules outside the transmitter.
+        config (Config): A configuration object holding parameters like reaction rates, permeability coefficients, 
+                       and step time.
 
     Returns:
-    - List: A list containing the concentration counts of:
-        1. Concentration of particle type 'R' inside the transmitter.
-        2. Concentration of particle type 'S' inside the transmitter.
-        3. Concentration of particle type 'S' outside the transmitter.
-        4. Average hits over time corresponding to the released molecules.
-
-    # The simulation state
-    state = 0
-    end_state = len(state_breaks)
-    perm_state = p
-    membrane_open = True
-    perm_close_steps = int(p_close / step_time)
-    if perm_close_steps > 0:
-        perm_step_change = p / perm_close_steps
-    else:
-        perm_step_change = 2 * p
+        dict: A dictionary containing the concentration counts of:
+            - NinR: Concentration of particle type 'R' inside the transmitter.
+            - NinS: Concentration of particle type 'S' inside the transmitter.
+            - NoutS: Concentration of particle type 'S' outside the transmitter.
+            - Nrec: Average hits over time corresponding to the released molecules.
     """
 
-    # The receiver variable
-    rec = AbsorbingReceiver(config.r_rx)
-    if config.receiver_type == 'AbsorbingReceiver':
-        pass
-    elif config.receiver_type == 'TransparentReceiver':
-        rec = TransparentReceiver(config.r_rx)
+    # Initialize the appropriate receiver based on configuration
+    rec = AbsorbingReceiver(config.r_rx) if config.receiver_type == 'AbsorbingReceiver' else TransparentReceiver(config.r_rx)
 
+    # Setup the reaction objects for the chemical processes
+    E_and_R_to_ER = Two2OneReaction(k1=config.k1, k_1=config.k_1,
+                                    substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration],
+                                    product_conc=conc_in.particles['ER'].concentration)
+    ER_to_ES = One2OneReaction(k1=config.k2, k_1=config.k_2,
+                               substrate_conc=conc_in.particles['ER'].concentration,
+                               product_conc=conc_in.particles['ES'].concentration)
+    ES_to_E_and_S = One2TwoReaction(k1=config.k3, k_1=config.k_3,
+                                    substrate_conc=conc_in.particles['ES'].concentration,
+                                    product_conc=[conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
 
-    # Reaction variables
-    E_and_R_to_ER = Two2OneReaction(k1=config.k1, k_1=config.k_1, substrate_conc=[conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], product_conc=conc_in.particles['ER'].concentration)
-    ER_to_ES = One2OneReaction(k1=config.k2, k_1=config.k_2, substrate_conc=conc_in.particles['ER'].concentration, product_conc=conc_in.particles['ES'].concentration)
-    ES_to_E_and_S = One2TwoReaction(k1=config.k3, k_1=config.k_3, substrate_conc=conc_in.particles['ES'].concentration, product_conc=[conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
-
-    # Utility variables
-    particle_names = ['R', 'S', 'MR', 'ER', 'ES']
-    flow = np.zeros((5,))
-
-    # Variables to store results
-    conc_in_molars = {}
-    conc_out_molars = {}
-    conc_in_counts = {}
-    conc_out_counts = {}
-    for key in conc_in.particles:
-        conc_in_molars[key] = np.zeros_like(time_array)
-        conc_out_molars[key] = np.zeros_like(time_array)
-        conc_in_counts[key] = np.zeros_like(time_array)
-        conc_out_counts[key] = np.zeros_like(time_array)
+    # Initialize results storage
+    conc_in_molars = {key: np.zeros_like(time_array) for key in conc_in.particles}
+    conc_out_molars = {key: np.zeros_like(time_array) for key in conc_out.particles}
+    conc_in_counts = {key: np.zeros_like(time_array) for key in conc_in.particles}
+    conc_out_counts = {key: np.zeros_like(time_array) for key in conc_out.particles}
     S_released_count = np.zeros_like(time_array)
 
-    # Verbose variables
-    pbar = tqdm(total=time_array.shape[0])
+    # Progress bar for simulation feedback
+    pbar = tqdm(total=len(time_array))
 
     # Simulation Loop
     for t_step, time in enumerate(time_array):
-        perm_state = rho_array[t_step]
-        #perm_state = p * perm_states[t_step]
-        # Diffusion Step
-        conc_in.diffuse(conc_out, perm_state, config.step_time)
-        # Update Reaction states
-        E_and_R_to_ER.update_conc([conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration], conc_in.particles['ER'].concentration)
-        ER_to_ES.update_conc(conc_in.particles['ER'].concentration, conc_in.particles['ES'].concentration)
-        ES_to_E_and_S.update_conc(conc_in.particles['ES'].concentration, [conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
-        # Step for the Reaction
-        molars = [conc_in.particles[name].concentration for name in particle_names]
-        step(reactions=[E_and_R_to_ER, ER_to_ES, ES_to_E_and_S], molars=molars, flows=flow, t=config.step_time)
+        perm_state = rho_array[t_step]  # Current permeability state from rho_array
 
-        # Update Diffusion States
+        # Perform diffusion in the transmitter system
+        conc_in.diffuse(conc_out, perm_state, config.step_time)
+
+        # Update reaction states
+        E_and_R_to_ER.update_conc([conc_in.particles['MR'].concentration, conc_in.particles['R'].concentration],
+                                  conc_in.particles['ER'].concentration)
+        ER_to_ES.update_conc(conc_in.particles['ER'].concentration, conc_in.particles['ES'].concentration)
+        ES_to_E_and_S.update_conc(conc_in.particles['ES'].concentration,
+                                  [conc_in.particles['MR'].concentration, conc_in.particles['S'].concentration])
+
+        # Execute step for reactions
+        molars = [conc_in.particles[name].concentration for name in ['R', 'S', 'MR', 'ER', 'ES']]
+        step(reactions=[E_and_R_to_ER, ER_to_ES, ES_to_E_and_S], molars=molars, flows=np.zeros(5), t=config.step_time)
+
+        # Update concentrations of the molecules in the input
         conc_in.particles['MR'].set_conc(ES_to_E_and_S.product_conc[0])
         conc_in.particles['R'].set_conc(E_and_R_to_ER.substrate_conc[1])
         conc_in.particles['S'].set_conc(ES_to_E_and_S.product_conc[1])
         conc_in.particles['ER'].set_conc(ER_to_ES.substrate_conc)
         conc_in.particles['ES'].set_conc(ER_to_ES.product_conc)
 
-        # Store the results
+        # Store the results of concentrations and counts over time
         for key in conc_in_molars:
             conc_in_molars[key][t_step] = conc_in.particles[key].concentration
             conc_out_molars[key][t_step] = conc_out.particles[key].concentration
             conc_in_counts[key][t_step] = conc_in.particles[key].count
             conc_out_counts[key][t_step] = conc_out.particles[key].count
-        S_released_count[t_step] = conc_out.particles['S'].count
 
+        # Count the released S molecules outside the transmitter
+        S_released_count[t_step] = conc_out.particles['S'].count
 
         """
         # Update the states
@@ -134,29 +133,19 @@ def practical_transmitter(time_array, rho_array, conc_in, conc_out, config):
         # Update the progress bar
         pbar.update()
 
-    # Calculate the average hits
     # Instantaneous increase in released molecule counts
     S_released_instant = np.concatenate(([0], S_released_count))
     S_released_instant = S_released_instant[1:] - S_released_instant[:-1]
 
-    # Average hit counts
-    # print('Calculating average hits')
-    # print('S rel inst', S_released_instant)
+    # Average hit counts based on released molecules
     avg_hits_inst = rec.average_hits(time_array, S_released_instant, config.r_tx, config.D_space, config.dist, config.k_d)
     avg_hits_inst = avg_hits_inst[:config.step_count] * config.step_time
     avg_hits = np.cumsum(avg_hits_inst)
-    #avg_hits = avg_hits_inst
 
-    # Convert all data in time steps to units
-    # avg_hits_inst *= config.steps_in_a_unit
-    # hit_probs *= config.steps_in_a_unit
-    # S_released_instant *= config.steps_in_a_unit
-
-    # Return the results directly as a dictionary
+    # Return results directly as a dictionary
     return {
-        'NinR': conc_in_counts['R'],
-        'NinS': conc_in_counts['S'],
-        'NoutS': conc_out_counts['S'],
-        'Nrec': avg_hits
-    }
-
+            'NinR': conc_in_counts['R'],
+            'NinS': conc_in_counts['S'],
+            'NoutS': conc_out_counts['S'],
+            'Nrec': avg_hits
+            }

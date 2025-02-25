@@ -2,118 +2,158 @@ import os
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 from models.space import Space, Particle
 
+def generate_random_switching_pattern(length: int = 10, padding: int = 5) -> list[int]:
+    """
+    Generates a random binary switching pattern for the transmitter.
 
-def generate_switching_pattern(switching_pattern, time_interval, length, config):
-    '''
-    Example: switching_pattern -> [1,0,0,1,0], time_interval -> 3s
+    The generated pattern contains random bits followed by a specified number of padding bits
+    (which are zeros). The random bits represent active (1) or inactive (0) states.
 
-    each switching pattern for 3s
-    '''
-    rho_array = np.zeros(length)
-    segment_length = length // len(switching_pattern) 
+    Parameters:
+        length (int): Number of random bits to generate (default is 10).
+        padding (int): Number of zeros to append at the end of the pattern (default is 5).
 
-    for i, state in enumerate(switching_pattern):
-        start_index = i * segment_length
-        end_index = start_index + segment_length
-        
-        # Assign the state value to the corresponding segment in rho_array
-        rho_array[start_index:end_index] = state * config.p
-
-    return rho_array
-
-def generate_dyn_switching_pattern(switching_pattern,
-                                   time_interval,
-                                   length,
-                                   config,
-                                   peak_duration_ratio=0.2,
-                                   zero_duration_ratio=0.2):
-    '''
-    Generate a permeability pattern that rises to a max, stays, then falls.
-
-    - switching_pattern: list of binary values [1,0,0,1,0]
-    - time_interval: Duration of each switching pattern (e.g., 3 seconds)
-    - length: Total length of the resulting rho_array
-    - config: Configuration object with maximum permeability 'p'
-    - peak_duration_ratio: Fraction of time_interval to stay at max before decreasing
+    Returns:
+        list[int]: A list containing the generated switching pattern with random bits followed by zeros.
 
     Example Usage:
-        - switching_pattern = [1, 0, 0, 1, 0]
-    - time_interval = 3
-    - length = 15 (must be divisible by len(switching_pattern))
-    - config.p = max permeability value
-    '''
+        pattern = generate_switching_pattern(length=15, padding=5)
+    """
+    if length < 0 or padding < 0:
+        raise ValueError("Both length and padding must be non-negative integers.")
+
+    random_bits = np.random.randint(0, 2, size=length)  # Generates random bits (0 or 1)
+    padding_bits = np.zeros(padding, dtype=int)  # Create an array of zeros for padding
+    return np.concatenate((random_bits, padding_bits)).tolist()
+
+
+def generate_permeability_pattern(
+        mode: str,
+        switching_pattern: list[int],
+        length: int,
+        config,
+        peak_duration_ratio: float,
+        zero_duration_ratio: float):
+
+    """
+    Generate a permeability pattern based on the specified mode (ideal/practical).
+
+    Parameters:
+        mode (str): Mode of operation ("ideal" or "practical").
+        switching_pattern (list[int]): List of binary values indicating the state [1, 0].
+        length (int): Total length of the resulting rho_array (must be equal to length of time array).
+        config: Configuration object with a maximum permeability attribute 'p'.
+        peak_duration_ratio (float): Fraction of the total duration to stay at maximum permeability.
+        zero_duration_ratio (float): Fraction of the total duration to stay at zero permeability.
+
+    Returns:
+        np.ndarray: Array representing the permeability pattern over time.
+
+    Example Usage:
+        rho_array = generate_switching_pattern('practical', [1, 0, 0, 1, 0], 30, config, 0.2, 0.2)
+    """
+
+    # Validate input parameters
+    if mode not in ['ideal', 'practical']:
+        raise ValueError("Mode must be either 'ideal' or 'practical'.")
 
     rho_array = np.zeros(length)
     segment_length = length // len(switching_pattern) 
 
-    # Determine how long to go up, stay at peak, and go down based on peak_duration_ratio
-    peak_duration = int(segment_length * peak_duration_ratio)
-    zero_duration = int(segment_length * zero_duration_ratio)
-    rise_duration = (segment_length - peak_duration - zero_duration) // 2
-    fall_duration = segment_length - rise_duration - peak_duration - zero_duration
+    if mode == 'practical':
+        # Determine how long to go up, stay at peak, and go down based on peak_duration_ratio
+        peak_duration = int(segment_length * peak_duration_ratio)
+        zero_duration = int(segment_length * zero_duration_ratio)
+        rise_duration = (segment_length - peak_duration - zero_duration) // 2
+        fall_duration = segment_length - rise_duration - peak_duration - zero_duration
+
+        def fill_segments(state, start_index):
+            if state == 1:
+                # Rising segment
+                for j in range(rise_duration):
+                    rho_array[start_index + j] = (j / rise_duration) * config.p
+
+                # Peak segment
+                for j in range(peak_duration):
+                    rho_array[start_index + rise_duration + j] = config.p
+
+                # Falling segment
+                for j in range(fall_duration):
+                    rho_array[start_index + rise_duration + peak_duration + j] = config.p * (1 - j / fall_duration)
+
+                # Zero duration segment
+                for j in range(zero_duration):
+                    rho_array[start_index + rise_duration + peak_duration + fall_duration + j] = 0
 
     for i, state in enumerate(switching_pattern):
         start_index = i * segment_length
         end_index = start_index + segment_length
 
-        if state == 1:
-            # Rising segment
-            for j in range(rise_duration):
-                rho_array[start_index + j] = (j / rise_duration) * config.p
-
-            # Peak segment
-            for j in range(peak_duration):
-                rho_array[start_index + rise_duration + j] = config.p
-
-            # Falling segment
-            for j in range(fall_duration):
-                rho_array[start_index + rise_duration + peak_duration + j] = config.p * (1 - j / fall_duration)
+        if mode == 'ideal':
+            # Assign the state value to the corresponding segment in rho_array
+            rho_array[start_index:end_index] = state * config.p
+        elif mode == 'practical' and state == 1:
+            fill_segments(state, start_index)
 
     return rho_array
 
+def save_to_csv(data_dict: dict, exp_type: str, config, file_extension: str = '.csv', **kwargs) -> None:
+    """
+    Save simulation results to a CSV file in a designated output folder.
 
-def save_to_csv(data_dict, exp_type, config, **kwargs):
-    '''
-    data: list of columns to save
-    file_name: name of the output file
-    output_folder: folder to save the output file
-    '''
+    Parameters:
+        data_dict (dict): A dictionary where keys are column headers and values are lists/arrays of data.
+        exp_type (str): Type of experiment ('ideal', 'practical', or 'point').
+        config (Config): Configuration object containing parameters used for file naming and output folder.
+        file_extension (str): The file extension for the saved file (default is '.csv').
+        kwargs: Additional keyword arguments to specify parameters related to saving.
+            - for 'practical': cons_in 
+
+    Raises:
+        ValueError: If required keys are not found in kwargs.
+    """
 
     # Prepare data for saving
     data = np.column_stack(list(data_dict.values()))
 
     # Set up directory and dynamic file naming
-    output_folder_with_ts = os.path.join(config.output_folder, datetime.now().strftime("%Y%m%d_%H%M"))
-    os.makedirs(output_folder_with_ts, exist_ok=True)  # Create folder if it doesn't exist
+    output_folder_with_ts = Path(config.output_folder) / datetime.now().strftime("%Y%m%d_%H%M")
+    output_folder_with_ts.mkdir(parents=True, exist_ok=True)  # Create folder if it doesn't exist
 
-    file_path = ''
+    # Determine the file name based on experiment type
     if exp_type == 'ideal':
-        file_name = f'kab_{config.kab}_Ts_{config.simulation_end}'
-        file_path = os.path.join(output_folder_with_ts, file_name)
+        file_name = f'kab_{config.kab}_Ts_{config.simulation_end}{file_extension}'
     elif exp_type == 'practical':
-        file_name = f"MR_{kwargs['conc_in'].particles['MR'].count:.2f}_Ts_{config.simulation_end}"
-        file_path = os.path.join(output_folder_with_ts, file_name)
+        if 'conc_in' not in kwargs or 'MR' not in kwargs['conc_in'].particles:
+            raise ValueError("Missing 'conc_in' or 'MR' in kwargs for 'practical' experiment.")
+        file_name = f"MR_{kwargs['conc_in'].particles['MR'].count:.2f}_Ts_{config.simulation_end}{file_extension}"
     elif exp_type == 'point':
-        file_name = f'N_{config.N}_Ts_{config.simulation_end}'
-        file_path = os.path.join(output_folder_with_ts, file_name)
+        file_name = f'N_{config.N}_Ts_{config.simulation_end}{file_extension}'
+    else:
+        raise ValueError(f"Unknown experiment type: {exp_type}")
 
     # Save to CSV with headers
     header = ','.join(data_dict.keys())
-    np.savetxt(file_path, data, delimiter=",", header=header)
+    file_path = output_folder_with_ts / file_name
+
+    # Save the data to a CSV file
+    np.savetxt(file_path, data, delimiter=",", header=header, comments='')
+
 
 def plot_data(time_array, rho, data_ideal, data_practical, data_pointTx, switching_pattern, config):
     """
     Plot permeability and molecule counts over time.
 
     Parameters:
-    - time_array: Array representing time intervals.
-    - permeability_array: Array representing permeability values.
-    - NinA, NinB, NoutB, Nrec: Arrays representing molecule counts.
-    - switching_pattern: The switching pattern used in the simulation.
-    - config: Configuration object with simulation details.
+        time_array: Array representing time intervals.
+        permeability_array: Array representing permeability values.
+        NinA, NinB, NoutB, Nrec: Arrays representing molecule counts.
+        switching_pattern: The switching pattern used in the simulation.
+        config: Configuration object with simulation details.
     """
     # Set up directory and dynamic file naming
     output_folder_with_ts = os.path.join(config.output_folder, datetime.now().strftime("%Y%m%d_%H%M"))
@@ -200,8 +240,26 @@ def plot_data(time_array, rho, data_ideal, data_practical, data_pointTx, switchi
 
     plt.show()
 
-
 def plot_pointTx(time_array, data_pointTx, config):
+
+    """
+    Plots the release and reception of B molecules over time in a point transmitter simulation.
+
+    This function generates a dual-axis plot showing the number of B molecules released 
+    (NoutB) and the number of B molecules received (Nrec) by the receiver over the time steps
+    defined in `time_array`. The plot will save the output as a PNG image in a designated
+    output folder with the current timestamp.
+
+    Parameters:
+        time_array (np.ndarray): An array of time points corresponding to the simulation.
+        data_pointTx (dict): A dictionary containing:
+        NoutB (np.ndarray): The number of B molecules released over time.
+        Nrec (np.ndarray): The number of B molecules received over time.
+        config: A configuration object that contains settings, including the output folder path.
+
+    Returns:
+        None: The function saves the plot and does not return any values.
+    """
 
     NoutB, Nrec = data_pointTx['NoutB'], data_pointTx['Nrec']
 
@@ -217,7 +275,7 @@ def plot_pointTx(time_array, data_pointTx, config):
     ax1.set_ylabel('# B Molecules Released', color='r')
     ax1.tick_params(axis='y', labelcolor='r')
     ax1.set_ylim(0, max(NoutB) )  # Adjust for better viewing
-    
+
     # Instantiate a second y-axis that shares the same x-axis
     ax2 = ax1.twinx()
     ax2.plot(time_array, Nrec, 'k', label='Nrec (Received)')
@@ -240,10 +298,10 @@ def plot_hitting_prob(time_array, hitting_prob):
     Function to plot permeability over time.
 
     Parameters:
-    - time_array: Array of time values.
-    - rho: Array of permeability values.
-    - switching_pattern: The switching pattern used in the simulation.
-    - Ts: Time interval for the switching pattern.
+        time_array: Array of time values.
+        rho: Array of permeability values.
+        switching_pattern: The switching pattern used in the simulation.
+        Ts: Time interval for the switching pattern.
     """
     plt.figure()
     plt.grid(True)
@@ -260,10 +318,10 @@ def plot_permeability(time_array, rho, switching_pattern, Ts):
     Function to plot permeability over time.
 
     Parameters:
-    - time_array: Array of time values.
-    - rho: Array of permeability values.
-    - switching_pattern: The switching pattern used in the simulation.
-    - Ts: Time interval for the switching pattern.
+        time_array: Array of time values.
+        rho: Array of permeability values.
+        switching_pattern: The switching pattern used in the simulation.
+        Ts: Time interval for the switching pattern.
     """
     plt.figure()
     plt.grid(True)
@@ -275,6 +333,24 @@ def plot_permeability(time_array, rho, switching_pattern, Ts):
     plt.show()
 
 def get_conc_vol_for_practical(r_tx, r_out):
+    """
+    Calculate the volume and initial concentrations of particles inside and outside the transmitter.
+
+    This function computes the internal and external volumes based on the radii of the 
+    transmitter and the surrounding environment. It also initializes the concentrations of 
+    different particle types (R, S, MR, ER, ES) for both the inner and outer spaces.
+
+    Parameters:
+        r_tx (float): Radius of the transmitter (m).
+        r_out (float): Radius of the environment (m).
+
+    Returns:
+        tuple: A tuple containing:
+            - vol_in (float): The volume of the inside of the transmitter (m³).
+            - vol_out (float): The volume of the surrounding environment (m³).
+            - conc_in (Space): An object representing concentrations of particles inside the transmitter.
+            - conc_out (Space): An object representing concentrations of particles outside the transmitter.
+    """
     # Molecule counts on the inside
     vol_in = (4*np.pi*r_tx*r_tx*r_tx)/3
     conc_in = Space({
@@ -283,8 +359,8 @@ def get_conc_vol_for_practical(r_tx, r_out):
         'MR': Particle(2.0, False, volume=vol_in),
         'ER': Particle(0.0, False, volume=vol_in),
         'ES': Particle(0.0, False, volume=vol_in)
-    }, area=4*np.pi*r_tx*r_tx, volume=vol_in)
-    
+        }, area=4*np.pi*r_tx*r_tx, volume=vol_in)
+
     # Molecule counts on the outside
     # We are considering Env a sphear including vol_in
     vol_out = (4*np.pi*r_out*r_out*r_out)/3
@@ -294,6 +370,6 @@ def get_conc_vol_for_practical(r_tx, r_out):
         'MR': Particle(0.0, False, volume=vol_out),
         'ER': Particle(0.0, False, volume=vol_out),
         'ES': Particle(0.0, False, volume=vol_out)
-    }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
-    
+        }, area=4*np.pi*r_tx*r_tx, volume=vol_out)
+
     return vol_in, vol_out, conc_in, conc_out

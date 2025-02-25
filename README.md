@@ -46,3 +46,13 @@ The settings can be found in the file `config.py`. The file includes the setting
 4) **Reaction Rate Constants**: These constants are the experimentally found reaction rate constants for the (R)-Mandelate to (S)-Mandelate reaction. Not to be modified.
 5) **Molecule Counts**: Defined as an object for the inside and outside. Changing the first parameter of the `Particle` objects for the inside or the outside will change the corresponding initial molecule counts.
 6) **Simulation Parameters**: `step_count` and `simulation_end` can be changed. `step_count` will determine the number of total steps in the simulation, so it defines the precision. `simulation_end` determines the total simulation time.
+
+# Building Docs
+
+```
+cd docs/
+
+make html
+
+run docs/_build/html/autodoc/modules.html
+```

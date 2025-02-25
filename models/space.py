@@ -64,10 +64,34 @@ class Particle():
 
 class AbsorbingReceiver():
 
+    """
+    Initialize an instance of AbsorbingReceiver with a specified radius.
+
+    Parameters:
+        radius (float): The radius of the absorbing receiver in meters.
+    """
+
     def __init__(self, radius) -> None:
         self.r_rx = radius
 
     def hitting_prob(self, t, r_tx, D, dist, k_d = 0.0):
+
+        """
+        Calculate the hitting probability for molecules from a transmitter to an absorbing receiver over time.
+
+        The hitting probability considers the effects of diffusion and the geometry of the transmitter and receiver.
+
+        Parameters:
+            t (np.ndarray): Array of time points for which to calculate hitting probability.
+            r_tx (float): Radius of the point transmitter in meters.
+            D (float): Diffusion coefficient of the medium in square meters per second.
+            dist (float): Distance from the center of the transmitter to the center of the receiver in meters.
+            k_d (float): Degradation rate constant (default is 0.0).
+
+        Returns:
+            np.ndarray: Hitting probabilities at each time point.
+        """
+
         rho = 0.25 / np.pi / r_tx / r_tx
         beta_1 = (r_tx + self.r_rx) * (r_tx + self.r_rx - 2 * dist) + dist * dist
         beta_1 /= 4 * D
@@ -86,31 +110,57 @@ class AbsorbingReceiver():
 
     def hitting_prob_point(self, t, D, dist, k_d = 0.0):
 
-        # Eq. 6 https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8742793
-        # Concentration after diffusion at distance dist
-        # beta1 = 1/np.sqrt((4 * np.pi * D)**3)
-        # beta2 = (dist * dist)/(4 * D)
-        # prob = beta1 * np.exp(-beta2)
+        """
+        Calculate the hitting probability for a point transmitter to an absorbing receiver.
 
-        # Eq. 39 
-        '''
-        D -> Diffusion Constant of space D_space in config
-        arx -> reciever radius config.r_rx
-        d0 -> dist in config
-        '''
-        # dist = 6*dist
+        This function computes the probability that a diffusing particle from a point transmitter 
+        reaches the absorbing receiver, based on diffusion theory.
+
+        # Eq. 39 https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8742793
+
+        Parameters:
+            t (np.ndarray): Array of time points for which to calculate hitting probability.
+            D (float): Diffusion coefficient of the medium in square meters per second.
+            dist (float): Distance from the point transmitter to the center of the receiver in meters.
+            k_d (float): Degradation rate constant (default is 0.0).
+
+        Returns:
+            np.ndarray: Hitting probabilities at each time point, with a zero probability at t=0.
+
+        Notes:
+            The calculated probabilities incorporate the receiver radius and distance.
+        """
+
         beta1 = self.r_rx/dist
         beta2 = dist - self.r_rx
         beta3 = np.sqrt(4 * D * t)
         beta3 = np.divide(beta2, beta3, out=np.zeros_like(t), where=t!=0)
         prob = beta1 * erfc(beta3)
         prob[0] = 0
-        print(t, prob)
-        print(f'Probability point tx absorbing rx: {prob}')
+        # print(t, prob)
+        # print(f'Probability point tx absorbing rx: {prob}')
 
         return prob
 
     def average_hits(self, t, N, r_tx, D, dist, k_d = 0.0, exp = None):
+        """
+        Calculate the average hits of molecules received based on the released concentrations.
+
+        Depending on the experiment type, this function uses the appropriate hitting probability
+        function to convolve the released molecules with the hitting probabilities.
+
+        Parameters:
+            t (np.ndarray): Array of time points for which to calculate average hits.
+            N (np.ndarray): Array representing the number of released molecules at each time step.
+            r_tx (float): Radius of the point transmitter in meters.
+            D (float): Diffusion coefficient of the medium in square meters per second.
+            dist (float): Distance from the transmitter to the receiver in meters.
+            k_d (float): Degradation rate constant (default is 0.0).
+            exp (str): Type of experiment ('point' or others to determine hitting prob behavior).
+
+        Returns:
+            np.ndarray: Convolution results representing the average hits over time.
+        """
         if exp == 'point':
             return sig.convolve(N, self.hitting_prob_point(t, D, dist, k_d), mode='full')
         return sig.convolve(N, self.hitting_prob(t, r_tx, D, dist, k_d), mode='full')
