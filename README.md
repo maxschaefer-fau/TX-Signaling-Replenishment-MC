@@ -9,12 +9,12 @@
 
 # General Layout
 The code is implemented in the following parts:
-1) `config.py`: Includes all of the settings and connstants required for the model.
-2) `main.py`: Main file to run.
-3) `ideal_transmitter.py`: Code for Ideal Transmitter.
-4) `practical_transmitter.py`: Code for Practical Transmitter.
-5) `point_transmitter.py`: Code for Point Transmitter.
-6) `utils.py`: Contains code for utility functions.
+1) `main.py`: Main file to run.
+2) `models/ideal_transmitter.py`: Code for Ideal Transmitter.
+3) `models/practical_transmitter.py`: Code for Practical Transmitter.
+4) `models/point_transmitter.py`: Code for Point Transmitter.
+5) `utils/config.py`: Includes all of the settings and connstants required for the model.
+6) `utils/utils.py`: Contains code for utility functions.
 
 # Environment Setup
 
@@ -50,9 +50,11 @@ The settings can be found in the file `config.py`. The file includes the setting
 # Building Docs
 
 ```
-cd docs/
-
-make html
-
-run docs/_build/html/autodoc/modules.html
+cd docs/ && make html
 ```
+
+- Run generated docs
+
+    ```
+    run docs/_build/html/index.html
+    ```
