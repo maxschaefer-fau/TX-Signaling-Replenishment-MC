@@ -13,7 +13,7 @@ The code is implemented in the following parts:
 2) `models/ideal_transmitter.py`: Code for Ideal Transmitter.
 3) `models/practical_transmitter.py`: Code for Practical Transmitter.
 4) `models/point_transmitter.py`: Code for Point Transmitter.
-5) `utils/config.py`: Includes all of the settings and connstants required for the model.
+5) `utils/config.py`: Includes all of the settings and constants required for the model.
 6) `utils/utils.py`: Contains code for utility functions.
 
 # Environment Setup
