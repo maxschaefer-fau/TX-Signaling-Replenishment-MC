@@ -10,11 +10,12 @@
 # General Layout
 The code is implemented in the following parts:
 1) `main.py`: Main file to run.
-2) `models/ideal_transmitter.py`: Code for Ideal Transmitter.
-3) `models/practical_transmitter.py`: Code for Practical Transmitter.
-4) `models/point_transmitter.py`: Code for Point Transmitter.
-5) `utils/config.py`: Includes all of the settings and constants required for the model.
-6) `utils/utils.py`: Contains code for utility functions.
+2) `transmitters/ideal_transmitter.py`: Code for Ideal Transmitter.
+3) `transmitters/practical_transmitter.py`: Code for Practical Transmitter.
+4) `transmitters/point_transmitter.py`: Code for Point Transmitter.
+5) `models/space.py`: Code for Receivers, Particle and Space.
+6) `utils/config.py`: Includes all of the settings and constants required for the model.
+7) `utils/utils.py`: Contains code for utility functions.
 
 # Environment Setup
 
