@@ -1,0 +1,10 @@
+name: idealTx
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - numpy
+  - python
+  - matplotlib
+  - scipy
+  - tqdm
