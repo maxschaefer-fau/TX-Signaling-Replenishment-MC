@@ -12,7 +12,7 @@ def load_data(file_path='koopman_state_data_ideal_7s.npy', control=False):
     """
     state_data = np.load(file_path)
     pyDMD_data = state_data.T  # Transpose to get (features, samples) for PyDMD
-    pyDMD_X = pyDMD_data[:5, :-1]  # State (X)
+    pyDMD_X = pyDMD_data[:5, :]  # State (X)
     pyDMD_Y = pyDMD_data[:5, 1:]   # Next state (Y)
     control_U = pyDMD_data[5:, :-1]  # Control input (U)
     print("Data shapes:", pyDMD_X.shape, pyDMD_Y.shape, control_U.shape)
@@ -35,7 +35,7 @@ def fit_dmdc(X, control_U, svd_rank=6):
     """
     Fit and reconstruct data using DMDc with control input.
     """
-    dmdc = DMDc(svd_rank=svd_rank)
+    dmdc = DMDc(svd_rank=svd_rank, lag=1)
     # Fit DMDc using state data X and control input control_U
     dmdc.fit(X=X, I=control_U)
     print("Eigenvalues of DMDc:", np.abs(dmdc.eigs))
@@ -90,7 +90,7 @@ def plot_state_evolution(state_data, labels=None):
 # Main function to run the experiments and visualize results
 def main():
     # Load the data
-    pyDMD_data, pyDMD_X, pyDMD_Y, control_U = load_data()
+    pyDMD_data, pyDMD_X, pyDMD_Y, control_U = load_data(file_path='koopman_state_data.npy')
 
     # Define a time vector (for example, 0, 1, 2, ..., N-1)
     t = np.arange(pyDMD_X.shape[1])  # Assuming time steps correspond to columns in X
@@ -98,11 +98,14 @@ def main():
     # Fit models and get reconstructed data
     print("Fitting DMD...")
     dmd, X_dmd = fit_dmd(pyDMD_data)
+    print("Fitting DMDc...")
+    dmdc, X_dmdc = fit_dmdc(pyDMD_X, control_U)
     print("Fitting BOPDMD...")
-    bopdmd, X_bopdmd = fit_bopdmd(pyDMD_X, t)
+    bopdmd, X_bopdmd = fit_bopdmd(pyDMD_data, t)
 
     # Plot comparisons of original vs reconstructed data for each method
     plot_comparison(pyDMD_X, X_dmd, index=1, title="DMD Approximation of Signal (S)")
+    plot_comparison(pyDMD_X, X_dmdc, index=1, title="DMDc Approximation of Signal (S)")
     plot_comparison(pyDMD_X, X_bopdmd, index=1, title="BOPDMD Approximation of Signal (S)")
 
 
