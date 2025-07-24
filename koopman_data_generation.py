@@ -17,19 +17,17 @@ conf = NanomachineConfig()
 # Setup volumes and concentrations
 vol_in, vol_out, conc_in, conc_out = get_conc_vol_for_practical(conf.r_tx, conf.r_out)
 
-switching_pattern = generate_random_switching_pattern(length=10, padding=5)
+switching_pattern = generate_random_switching_pattern(length=10, padding=2)
 
 # Define time array
-Ts = 7  # Time duration for each switch in switching pattern
+Ts =  11 # Time duration for each switch in switching pattern
 conf.simulation_end = len(switching_pattern) * Ts  # Set total simulation time
 
-time_array = np.linspace(0,
-                         conf.simulation_end,
-                         int(conf.simulation_end / conf.step_time),
-                         endpoint=False)
+time_array = np.arange(0, conf.simulation_end, 1e-3)
+
 
 # Generate permeability pattern (ideal mode in this example)
-rho_array = generate_permeability_pattern(mode='ideal',
+rho_array = generate_permeability_pattern(mode='practical',
                                     switching_pattern=switching_pattern,
                                     length=len(time_array),
                                     config=conf,
@@ -140,4 +138,4 @@ def generate_state_data(time_array: np.ndarray, rho_array: np.ndarray, conc_in, 
 # Assuming time_array, rho_array, conc_in, conc_out, and config are already defined
 state_data = generate_state_data(time_array, rho_array, conc_in, conc_out, conf)
 
-np.save('data/koopman_state_data_ideal_7s.npy', state_data)
+np.save('data/koopman_state_data_practical_11s_10switch.npy', state_data)

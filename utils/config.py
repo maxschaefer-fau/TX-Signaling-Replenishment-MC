@@ -36,7 +36,7 @@ class NanomachineConfig:
 
         # Simulation Parameters
         self.receiver_type: str = 'AbsorbingReceiver'
-        self.step_count: int = int(1e5)
+        self.step_count: int = int(1e6)
         self._simulation_end: float = 10.0
 
         # Point Transmitter Properties
